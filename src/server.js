@@ -1,41 +1,19 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { createRequire } from 'node:module';
-import { baseUrl, readConfig, writeConfig } from './config.js';
-import { renewSession, savedSession } from './browser.js';
-import { CanvasClient } from './canvas.js';
+import { App } from './app.js';
+import { Jobs } from './jobs.js';
 import { registerTools } from './tools.js';
+import { release } from './release.js';
 
-const { version } = createRequire(import.meta.url)('../package.json');
+export { sessionProvider } from './app.js';
 
-// The browser is only started to get (or refresh) the session cookie; API calls then go
-// straight from Node. One refresh at a time even if the model calls several tools at once.
-// Saved cookies are tried first (no browser at all); the browser only opens when Canvas rejects them.
-const renewWithConfig = (base) => renewSession(base, {
-  loginPath: readConfig().loginPath,
-  onLoginPath: (p) => writeConfig({ loginPath: p }),
-  hiddenWorks: readConfig().hiddenRenewWorks,
-  onHiddenResult: (ok) => writeConfig({ hiddenRenewWorks: ok }),
-  log: (m) => process.stderr.write(m + '\n'),
-});
-
-export function sessionProvider(base, open = renewWithConfig, saved = savedSession) {
-  let pending = null;
-  let cached = null;
-  return async ({ fresh = false } = {}) => {
-    if (!cached && !fresh) cached = saved(base);
-    if (cached && !fresh) return cached;
-    if (!pending) pending = open(base).then((s) => { cached = s; return s; }).finally(() => { pending = null; });
-    return pending;
-  };
-}
-
+// MCP over stdio. stdout carries only protocol messages; anything for people goes to stderr.
 export async function startServer() {
-  const server = new McpServer({ name: 'canvas-session-mcp', version });
-  let client = null;
+  const server = new McpServer({ name: 'liverpool-canvas', version: release().version });
+  let app = null;
   registerTools(server, async () => {
-    if (!client) { const base = baseUrl(); client = new CanvasClient({ base, session: sessionProvider(base) }); }
-    return client;
+    if (!app) { app = new App(); app.jobs = new Jobs(app); }
+    return app;
   });
   await server.connect(new StdioServerTransport());
 }

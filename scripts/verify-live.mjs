@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'cli.js');
 const client = new Client({ name: 'verify-live', version: '0' });
-await client.connect(new StdioClientTransport({ command: process.execPath, args: [cli], env: process.env, stderr: 'inherit' }));
+await client.connect(new StdioClientTransport({ command: process.execPath, args: [cli, 'mcp'], env: process.env, stderr: 'inherit' }));
 
 const results = [];
 async function check(label, name, args, expect) {

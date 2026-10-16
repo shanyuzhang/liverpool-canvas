@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
-import { PROFILE_DIR, HOME, CMD } from './config.js';
+import { AuthError } from './canvas.js';
+import { PROFILE_DIR, HOME, ensureHome, writePrivate } from './config.js';
+import { cliHint } from './release.js';
 
 // Canvas and most school SSOs use *session* cookies, which Chrome drops when the window
 // closes. So after a successful sign-in we keep the cookies ourselves (in your home folder,
@@ -17,8 +19,16 @@ function loadCookies() {
 }
 
 function saveCookies(cookies) {
-  fs.mkdirSync(HOME, { recursive: true });
-  fs.writeFileSync(SESSION_FILE, JSON.stringify(cookies), { mode: 0o600 });
+  ensureHome();
+  writePrivate(SESSION_FILE, JSON.stringify(cookies));
+}
+
+export const hasSavedSession = () => loadCookies().length > 0;
+
+// Signing out on this computer: the saved cookies and the separate sign-in browser profile go.
+export function clearSession() {
+  fs.rmSync(SESSION_FILE, { force: true });
+  fs.rmSync(PROFILE_DIR, { recursive: true, force: true });
 }
 
 const matches = (host, c) => { const d = c.domain.replace(/^\./, ''); return host === d || host.endsWith('.' + d); };
@@ -39,15 +49,16 @@ export function savedSession(base) {
 // school's SSO. Later runs reuse that profile headlessly; your identity provider's
 // "stay signed in" cookie usually signs you back in without any prompt.
 export async function launch({ headless }) {
-  fs.mkdirSync(PROFILE_DIR, { recursive: true });
+  ensureHome();
+  fs.mkdirSync(PROFILE_DIR, { recursive: true, mode: 0o700 });
   const errors = [];
-  const channels = process.env.CANVAS_MCP_BROWSER ? [process.env.CANVAS_MCP_BROWSER] : ['chrome', 'msedge', 'chromium'];
+  const channels = process.env.LIVERPOOL_CANVAS_BROWSER ? [process.env.LIVERPOOL_CANVAS_BROWSER] : ['chrome', 'msedge', 'chromium'];
   for (const channel of channels) {
     try {
       return await chromium.launchPersistentContext(PROFILE_DIR, { channel, headless, viewport: headless ? undefined : null });
     } catch (e) { errors.push(`${channel}: ${e.message.split('\n')[0]}`); }
   }
-  throw new Error(`Could not start Chrome or Edge. Install one of them, or set CANVAS_MCP_BROWSER.\n${errors.join('\n')}`);
+  throw new Error(`Could not start Chrome or Edge. Install one of them (or set LIVERPOOL_CANVAS_BROWSER to chrome, msedge or chromium).\n${errors.join('\n')}`);
 }
 
 // Asks Canvas who we are from inside the page, so the request carries the browser's cookies.
@@ -115,23 +126,23 @@ export async function openSession(base, { headless = true, startPath = '/', time
 //  2. otherwise a visible window opened at your school's SSO entry. While the SSO still
 //     remembers you it signs in and closes by itself in a second or two; if the SSO session
 //     has ended too, the window waits for you to sign in (bot checks are left to you, never automated).
-// CANVAS_MCP_RENEW=hidden skips step 2 (then run `login` yourself when the session expires).
+// LIVERPOOL_CANVAS_RENEW=hidden skips step 2 (then run `login` yourself when the session expires).
 //  `hiddenWorks: false` (remembered after the first failure) skips step 1, which saves ~20 s.
 //  A tool call waits at most `waitMs` for the window (AI apps time out around 60 s). If you are
 //  still typing your password, the call reports that and the window stays open; once you finish,
 //  the session is saved and the next request just works. Only one window is ever open at a time.
 let signInWindow = null;
-const SIGN_IN_HINT = 'A Canvas sign-in window is open. Sign in there, then ask again.';
+const SIGN_IN_HINT = 'A Canvas sign-in window is open. Sign in there (university account, password and MFA as usual), then ask again.';
 
 export async function renewSession(base, { loginPath, onLoginPath, hiddenWorks, onHiddenResult = () => {}, log = () => {}, waitMs = 40000 } = {}) {
-  if (!loadCookies().length) throw new Error(`Not signed in to Canvas yet. Run: ${CMD} setup`);
+  if (!loadCookies().length) throw new AuthError(`Not signed in to Canvas yet. Run: ${cliHint('login')}`);
   if (signInWindow) return waitFor(signInWindow, waitMs);
   if (hiddenWorks !== false) {
     try { const s = await openSession(base, { headless: true, onLoginPath }); onHiddenResult(true); return s; }
     catch { onHiddenResult(false); }
   }
-  if (process.env.CANVAS_MCP_RENEW === 'hidden') {
-    throw new Error(`Your Canvas session has expired. Run: ${CMD} login`);
+  if (process.env.LIVERPOOL_CANVAS_RENEW === 'hidden') {
+    throw new AuthError(`Your Canvas session has expired. Run: ${cliHint('login')}`);
   }
   log('Canvas session expired; opening a sign-in window…');
   signInWindow = openSession(base, { headless: false, startPath: loginPath || '/', timeoutMs: 600000, onLoginPath })
@@ -146,7 +157,7 @@ async function waitFor(win, ms) {
   try {
     return await Promise.race([win, late]);
   } catch (e) {
-    if (e.message === SIGN_IN_HINT) throw e;
-    throw new Error(`Canvas sign-in was not completed (${e.message}). Run: ${CMD} login`);
+    if (e.message === SIGN_IN_HINT) throw new AuthError(SIGN_IN_HINT);
+    throw new AuthError(`Canvas sign-in was not completed (${e.message}). Run: ${cliHint('login')}`);
   } finally { clearTimeout(timer); }
 }

@@ -1,27 +1,50 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
-// Everything lives in one folder in your home directory: the saved Canvas URL, the
-// browser profile that holds your login, and downloaded files. Nothing is sent anywhere else.
-export const HOME = process.env.CANVAS_MCP_HOME || path.join(os.homedir(), '.canvas-session-mcp');
-export const PROFILE_DIR = process.env.CANVAS_MCP_PROFILE || path.join(HOME, 'browser-profile');
+// This tool is for one Canvas only.
+export const LIVERPOOL_CANVAS = 'https://canvas.liverpool.ac.uk';
+
+// Everything this tool keeps lives in one folder in your home directory: settings, the
+// separate browser profile used for signing in, saved session cookies and the download index.
+// Course files go to the download folder you choose, never in here.
+export const HOME = process.env.LIVERPOOL_CANVAS_HOME || path.join(os.homedir(), '.liverpool-canvas');
+export const PROFILE_DIR = path.join(HOME, 'browser-profile');
 const CONFIG_FILE = path.join(HOME, 'config.json');
-// What to tell people to run (the package is installed straight from GitHub, not from npm).
-export const CMD = 'npx -y https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz';
-export const DEFAULT_DOWNLOADS = path.join(os.homedir(), 'Documents', 'Canvas');
 
-// Where course files are saved: chosen during `setup`, or CANVAS_MCP_DOWNLOADS.
-export function downloadDir() {
-  return process.env.CANVAS_MCP_DOWNLOADS || readConfig().downloadDir || DEFAULT_DOWNLOADS;
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]', '::1']);
+export const isLoopbackHost = (host) => LOOPBACK.has(String(host).toLowerCase());
+
+// Tests and the demo point the tool at a synthetic Canvas running on this computer.
+// Only plain-http loopback addresses are accepted, so it can never be aimed at another school.
+export function baseUrl() {
+  const test = process.env.LIVERPOOL_CANVAS_TEST_ORIGIN;
+  if (!test) return LIVERPOOL_CANVAS;
+  const u = new URL(test);
+  if (u.protocol !== 'http:' || !isLoopbackHost(u.hostname)) {
+    throw new Error('LIVERPOOL_CANVAS_TEST_ORIGIN only accepts a local test server (http://127.0.0.1:<port>).');
+  }
+  return u.origin;
 }
 
-export function normalizeBaseUrl(url) {
-  let u = String(url || '').trim();
-  if (!u) return '';
-  if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-  const parsed = new URL(u);
-  return parsed.origin;
+// Links in course content occasionally use Canvas's instructure.com name for the same site.
+// They are recognised as Canvas links, but requests always go to the main address.
+export const CANVAS_ALIASES = ['liverpool.instructure.com'];
+
+// Files and folders here are readable only by you (where the OS supports POSIX modes).
+export function ensureHome() {
+  fs.mkdirSync(HOME, { recursive: true, mode: 0o700 });
+  try { fs.chmodSync(HOME, 0o700); } catch { /* Windows: ACLs of the user profile apply */ }
+  return HOME;
+}
+
+export function writePrivate(file, data) {
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  const tmp = `${file}.${process.pid}.${crypto.randomBytes(4).toString('hex')}.tmp`;
+  fs.writeFileSync(tmp, data, { mode: 0o600 });
+  fs.renameSync(tmp, file);
 }
 
 export function readConfig() {
@@ -29,15 +52,67 @@ export function readConfig() {
 }
 
 export function writeConfig(patch) {
-  fs.mkdirSync(HOME, { recursive: true });
+  ensureHome();
   const next = { ...readConfig(), ...patch };
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(next, null, 2));
+  for (const [k, v] of Object.entries(patch)) if (v === undefined) delete next[k];
+  writePrivate(CONFIG_FILE, JSON.stringify(next, null, 2));
   return next;
 }
 
-// CANVAS_URL (env) wins over the URL saved by `login`, so one install can point at another school.
-export function baseUrl() {
-  const u = normalizeBaseUrl(process.env.CANVAS_URL || readConfig().baseUrl);
-  if (!u) throw new Error(`No Canvas URL configured. Run: ${CMD} setup`);
-  return u;
+// The user's Documents folder from the OS (it can be redirected, e.g. to OneDrive on Windows).
+let documents = null;
+export function documentsDir() {
+  if (documents) return documents;
+  const home = os.homedir();
+  let dir = null;
+  try {
+    if (process.platform === 'win32') {
+      const r = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '[Environment]::GetFolderPath("MyDocuments")'], { encoding: 'utf8', timeout: 5000, windowsHide: true });
+      dir = r.status === 0 ? r.stdout.trim() : null;
+    } else if (process.platform === 'linux') {
+      const r = spawnSync('xdg-user-dir', ['DOCUMENTS'], { encoding: 'utf8', timeout: 3000 });
+      dir = r.status === 0 && r.stdout.trim() !== home ? r.stdout.trim() : null;
+    }
+  } catch { dir = null; }
+  documents = dir && path.isAbsolute(dir) ? dir : path.join(home, 'Documents');
+  return documents;
+}
+
+export const defaultDownloadRoot = () => path.join(documentsDir(), 'Canvas');
+
+// The download folder the user confirmed (setup, local page, or an AI tool call that asked them).
+// Null until confirmed. LIVERPOOL_CANVAS_DOWNLOADS overrides it, e.g. for scripts.
+export function downloadRoot() {
+  if (process.env.LIVERPOOL_CANVAS_DOWNLOADS) return path.resolve(process.env.LIVERPOOL_CANVAS_DOWNLOADS);
+  const c = readConfig();
+  return c.downloadDir && c.downloadDirConfirmedAt ? c.downloadDir : null;
+}
+
+// Sets the download folder. Returns whether it is a new destination for an existing setup.
+export function confirmDownloadRoot(dir) {
+  if (!dir || !path.isAbsolute(String(dir))) throw new Error('Choose a full folder path, e.g. ' + defaultDownloadRoot());
+  const resolved = path.resolve(String(dir));
+  const before = downloadRoot();
+  fs.mkdirSync(resolved, { recursive: true });
+  writeConfig({ downloadDir: resolved, downloadDirConfirmedAt: new Date().toISOString() });
+  return { root: resolved, changed: !!before && before !== resolved, previous: before };
+}
+
+// Download indexes and saved course choices belong to one Canvas account; another student
+// signing in on the same computer gets their own.
+export const accountKey = (origin, userId) => crypto.createHash('sha256').update(`${origin}|${userId}`).digest('hex').slice(0, 16);
+export const rootKey = (root) => crypto.createHash('sha256').update(path.resolve(root)).digest('hex').slice(0, 12);
+export const accountDir = (origin, userId) => path.join(HOME, 'accounts', accountKey(origin, userId));
+
+export function savedSelection(origin, userId, root) {
+  const s = readConfig().selections?.[accountKey(origin, userId)]?.[rootKey(root)];
+  return s ? s.courseIds.map(String) : null;
+}
+
+export function saveSelection(origin, userId, root, courseIds) {
+  const all = readConfig().selections || {};
+  const acct = all[accountKey(origin, userId)] || {};
+  acct[rootKey(root)] = { root: path.resolve(root), courseIds: [...new Set(courseIds.map(String))], savedAt: new Date().toISOString() };
+  writeConfig({ selections: { ...all, [accountKey(origin, userId)]: acct } });
+  return acct[rootKey(root)].courseIds;
 }

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liverpool Canvas</title>
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="/icon.svg" alt="" width="28" height="28"><span>Liverpool Canvas</span><span class="tag" data-i18n="localTag"></span></div>
+  <div class="top-actions">
+    <span id="who" class="who"></span>
+    <button id="lang" class="pill" type="button">English</button>
+    <button id="quit" class="pill" type="button" data-i18n="quit"></button>
+  </div>
+</header>
+
+<main>
+  <div id="banner" class="banner" hidden></div>
+
+  <!-- Signed out -->
+  <section id="signin" class="card hero" hidden>
+    <h1 data-i18n="signinTitle"></h1>
+    <p data-i18n="signinLead"></p>
+    <ul class="checks">
+      <li data-i18n="signinPoint1"></li>
+      <li data-i18n="signinPoint2"></li>
+      <li data-i18n="signinPoint3"></li>
+    </ul>
+    <button id="login" class="btn primary" type="button" data-i18n="signinButton"></button>
+    <p id="loginState" class="muted" aria-live="polite"></p>
+  </section>
+
+  <!-- Signed in -->
+  <div id="home" hidden>
+    <section class="entry">
+      <a class="entry-card" href="#connect">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <span><strong data-i18n="entryAiTitle"></strong><small data-i18n="entryAiText"></small></span>
+      </a>
+      <a class="entry-card" href="#download">
+        <span class="entry-icon" aria-hidden="true">↓</span>
+        <span><strong data-i18n="entryDlTitle"></strong><small data-i18n="entryDlText"></small></span>
+      </a>
+    </section>
+
+    <section class="overview">
+      <div class="card">
+        <h2 data-i18n="upcomingTitle"></h2>
+        <ul id="upcoming" class="list"><li class="muted" data-i18n="loading"></li></ul>
+      </div>
+      <div class="card">
+        <h2 data-i18n="annTitle"></h2>
+        <ul id="announcements" class="list"><li class="muted" data-i18n="loading"></li></ul>
+      </div>
+    </section>
+
+    <section id="download" class="card">
+      <div class="section-head">
+        <h2 data-i18n="dlTitle"></h2>
+        <p class="muted" data-i18n="dlLead"></p>
+      </div>
+      <div class="folder">
+        <div>
+          <div class="label" data-i18n="folderLabel"></div>
+          <code id="folderPath"></code>
+          <div id="folderHint" class="muted small"></div>
+        </div>
+        <div class="folder-actions">
+          <button id="openRoot" class="btn ghost" type="button" data-i18n="openFolder"></button>
+          <button id="changeFolder" class="btn ghost" type="button" data-i18n="changeFolder"></button>
+        </div>
+      </div>
+      <form id="folderForm" class="folder-form" hidden>
+        <label for="folderInput" data-i18n="folderInputLabel"></label>
+        <input id="folderInput" type="text" spellcheck="false" autocomplete="off">
+        <p id="folderWarn" class="warn small" hidden data-i18n="folderChangeWarn"></p>
+        <div class="row">
+          <button class="btn primary" type="submit" data-i18n="folderSave"></button>
+          <button id="folderCancel" class="btn ghost" type="button" data-i18n="cancel"></button>
+        </div>
+      </form>
+
+      <div id="courses" class="courses"><p class="muted" data-i18n="loadingCourses"></p></div>
+
+      <div class="actionbar">
+        <label class="toggle"><input id="images" type="checkbox"> <span data-i18n="includeImages"></span></label>
+        <div class="row">
+          <button id="sync" class="btn ghost" type="button" data-i18n="syncButton"></button>
+          <button id="preview" class="btn ghost" type="button" data-i18n="previewButton"></button>
+          <button id="start" class="btn primary" type="button"></button>
+        </div>
+      </div>
+      <p class="muted small" data-i18n="missingOnlyNote"></p>
+    </section>
+
+    <section id="progress" class="card" hidden aria-live="polite">
+      <div class="section-head">
+        <h2 id="progressTitle"></h2>
+        <button id="cancel" class="btn ghost" type="button" data-i18n="cancelDownload"></button>
+      </div>
+      <div id="bar" class="bar indeterminate"><span></span></div>
+      <p id="current" class="muted small"></p>
+      <div id="perCourse" class="per-course"></div>
+      <div id="doneActions" class="row" hidden>
+        <button id="openAfter" class="btn primary" type="button" data-i18n="openFolder"></button>
+        <button id="retry" class="btn ghost" type="button" data-i18n="retryButton"></button>
+        <button id="closeProgress" class="btn ghost" type="button" data-i18n="close"></button>
+      </div>
+    </section>
+
+    <section id="connect" class="card">
+      <div class="section-head">
+        <h2 data-i18n="connectTitle"></h2>
+        <p class="muted" data-i18n="connectLead"></p>
+      </div>
+      <div id="clients" class="clients"></div>
+      <p id="connectResult" class="ok" hidden></p>
+      <details class="muted small">
+        <summary data-i18n="connectPrivacyTitle"></summary>
+        <p data-i18n="connectPrivacy"></p>
+      </details>
+      <p class="muted small" data-i18n="examplesTitle"></p>
+      <ul class="examples">
+        <li data-i18n="ex1"></li><li data-i18n="ex2"></li><li data-i18n="ex3"></li><li data-i18n="ex4"></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2 data-i18n="historyTitle"></h2></div>
+      <ul id="history" class="list"></ul>
+      <div class="row">
+        <button id="logout" class="btn ghost danger" type="button" data-i18n="logout"></button>
+      </div>
+    </section>
+  </div>
+
+  <footer class="foot muted small">
+    <span data-i18n="unofficial"></span> · <span id="version"></span>
+  </footer>
+</main>
+
+<dialog id="previewDialog">
+  <form method="dialog">
+    <h2 data-i18n="previewTitle"></h2>
+    <div id="previewBody" class="preview-body"></div>
+    <div class="row end">
+      <button class="btn ghost" value="cancel" data-i18n="close"></button>
+      <button id="previewStart" class="btn primary" value="start" data-i18n="previewConfirm"></button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/i18n.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

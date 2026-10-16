@@ -1,47 +1,50 @@
 {
-  "name": "canvas-session-mcp",
+  "name": "@your-npm-scope/liverpool-canvas",
   "version": "0.1.0",
-  "description": "MCP server that connects AI assistants (Claude, Cursor, Codex…) to Canvas LMS using your normal browser login — no access token needed. Read-only.",
-  "main": "src/server.js",
-  "scripts": {
-    "test": "node --test"
-  },
-  "keywords": [
-    "canvas",
-    "canvas-lms",
-    "instructure",
-    "mcp",
-    "model-context-protocol",
-    "claude",
-    "student",
-    "ai"
-  ],
-  "author": "CorCvusRamboChen",
-  "license": "MIT",
+  "description": "Connect your AI assistant to University of Liverpool Canvas with your normal university sign-in (no access token), and keep a local copy of course files that only ever fetches what you do not have yet. Unofficial, read-only.",
   "type": "module",
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.32.0",
-    "html-to-text": "^10.0.1",
-    "mammoth": "^1.13.0",
-    "playwright-core": "^1.63.0",
-    "unpdf": "^1.8.1",
-    "zod": "^4.6.5"
-  },
+  "main": "src/server.js",
   "bin": {
-    "canvas-session-mcp": "bin/cli.js"
+    "liverpool-canvas": "bin/cli.js"
   },
   "files": [
     "bin",
     "src",
+    "web",
+    "release.json",
     "README.md",
+    "PRIVACY.md",
     "LICENSE"
   ],
+  "scripts": {
+    "test": "node --test",
+    "test:fast": "node --test test/links.test.js test/policy.test.js",
+    "build:site": "node scripts/build-site.mjs",
+    "check:pack": "node scripts/pack-check.mjs",
+    "check:release": "node scripts/release-check.mjs",
+    "demo": "node scripts/demo.mjs"
+  },
+  "keywords": [
+    "canvas",
+    "canvas-lms",
+    "university-of-liverpool",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "codex",
+    "student"
+  ],
+  "license": "MIT",
   "engines": {
     "node": ">=20"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CorCvusRamboChen/canvas-session-mcp.git"
-  },
-  "homepage": "https://corcvusrambochen.github.io/canvas-session-mcp/"
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "html-to-text": "^10.0.1",
+    "htmlparser2": "^10.1.0",
+    "mammoth": "^1.13.0",
+    "playwright-core": "^1.63.0",
+    "unpdf": "^1.8.1",
+    "zod": "^4.6.5"
+  }
 }

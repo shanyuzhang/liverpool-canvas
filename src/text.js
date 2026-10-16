@@ -13,14 +13,6 @@ export function htmlToText(html) {
   }).replace(/\n{3,}/g, '\n\n').trim();
 }
 
-// Canvas file links look like /courses/1/files/123 or /files/123/download. Surfacing the ids
-// lets the model call canvas_read_file on handouts that are only linked from a page.
-export function fileIdsIn(html) {
-  const ids = new Set();
-  for (const m of String(html || '').matchAll(/\/files\/(\d+)/g)) ids.add(m[1]);
-  return [...ids];
-}
-
 const ext = (name) => String(name || '').toLowerCase().split('.').pop();
 
 // Turns a downloaded file into text. Returns null for formats we cannot read
