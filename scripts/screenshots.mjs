@@ -37,7 +37,7 @@ try {
   for (const id of ['101', '202']) await page.check(`#courses input[value="${id}"]`);
   await page.evaluate(() => { document.getElementById('folderPath').textContent = '/Users/alex/Documents/Canvas'; });
   await page.locator('#download').scrollIntoViewIfNeeded();
-  await page.screenshot({ path: path.join(out, 'step-3-choose.png') });
+  await page.locator('#download').screenshot({ path: path.join(out, 'step-3-choose.png') });
   await page.click('#start');
   await page.waitForSelector('#doneActions:not([hidden])');
   await page.evaluate(() => { document.getElementById('folderPath').textContent = '/Users/alex/Documents/Canvas'; document.getElementById('progress').scrollIntoView({ block: 'center' }); });

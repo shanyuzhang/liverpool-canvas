@@ -4,241 +4,313 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Liverpool Canvas</title>
-<meta name="description" content="把利物浦大学 Canvas 接到你的 AI 助手：用学校正常登录，无需个人 Access Token；查询课程、截止任务、公告，读取和下载课件，以后只补新文件。学生维护的非官方开源工具。">
+<meta name="description" content="让 AI 帮你看利物浦大学 Canvas：作业截止、老师公告、课件下载，一句话问清楚。用学校账号正常登录。学生维护的非官方开源工具。">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <style>
 :root {
-  --bg: #f6f7f6; --surface: #fff; --text: #17201e; --muted: #5d6967; --line: #dfe5e3;
-  --accent: #0f766e; --accent-ink: #fff; --accent-soft: #e6f4f1; --code: #eef2f1; --warn: #9a5b00; --warn-soft: #fff6e5;
+  --s0: #f5f5f3; --s1: #fcfcfb; --s2: #ffffff;
+  --text: #20201e; --text-2: #373634; --muted: #6b6863; --faint: #a4a19b;
+  --line: #e7e5df; --line-strong: #dedcd6;
+  --clay: #d97757; --clay-strong: #cc5a36; --clay-tint: #fbf3ef; --on-clay: #ffffff;
+  --code: #f5f5f3; --ok: #3f7d4e;
+  --ring: 0 0.25rem 1.25rem rgba(0,0,0,.035), inset 0 0 0 1px var(--line);
+  --pop: 0 12px 40px rgba(32,32,30,.08), 0 2px 6px rgba(32,32,30,.04), inset 0 0 0 1px var(--line);
+  --ease: cubic-bezier(.165,.84,.44,1);
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #101514; --surface: #181f1e; --text: #e7eeec; --muted: #9ba9a6; --line: #2a3432;
-    --accent: #2dd4bf; --accent-ink: #082320; --accent-soft: #13302b; --code: #1f2927; --warn: #fbbf24; --warn-soft: #2c2410;
+    --s0: #151515; --s1: #1a1a19; --s2: #20201e;
+    --text: #f5f5f3; --text-2: #dedcd6; --muted: #a4a19b; --faint: #6b6863;
+    --line: #2e2d2b; --line-strong: #373634;
+    --clay: #d97757; --clay-strong: #e08a6c; --clay-tint: #2b211c; --on-clay: #ffffff;
+    --code: #262624; --ok: #7fbf8e;
+    --ring: 0 0.25rem 1.25rem rgba(0,0,0,.25), inset 0 0 0 1px var(--line);
+    --pop: 0 12px 40px rgba(0,0,0,.4), inset 0 0 0 1px var(--line);
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #101514; --surface: #181f1e; --text: #e7eeec; --muted: #9ba9a6; --line: #2a3432;
-  --accent: #2dd4bf; --accent-ink: #082320; --accent-soft: #13302b; --code: #1f2927; --warn: #fbbf24; --warn-soft: #2c2410;
+  --s0: #151515; --s1: #1a1a19; --s2: #20201e;
+  --text: #f5f5f3; --text-2: #dedcd6; --muted: #a4a19b; --faint: #6b6863;
+  --line: #2e2d2b; --line-strong: #373634;
+  --clay: #d97757; --clay-strong: #e08a6c; --clay-tint: #2b211c; --on-clay: #ffffff;
+  --code: #262624; --ok: #7fbf8e;
+  --ring: 0 0.25rem 1.25rem rgba(0,0,0,.25), inset 0 0 0 1px var(--line);
+  --pop: 0 12px 40px rgba(0,0,0,.4), inset 0 0 0 1px var(--line);
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
-a { color: var(--accent); }
-.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
-header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: inherit; text-decoration: none; }
-.top-links { display: flex; gap: 8px; align-items: center; }
-.pill { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 5px 12px; border-radius: 999px; cursor: pointer; text-decoration: none; }
-.hero { padding-top: 40px; padding-bottom: 24px; }
-.hero h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 14px; }
-.hero .lead { font-size: 18px; color: var(--muted); max-width: 680px; margin: 0 0 22px; }
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
-.chips li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.cta { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-weight: 600; font-size: 15px; padding: 11px 18px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; text-decoration: none; }
-.btn.primary { background: var(--accent); color: var(--accent-ink); }
-.btn.ghost { background: var(--surface); border-color: var(--line); color: var(--text); }
-section { padding: 28px 0; border-top: 1px solid var(--line); }
-section h2 { font-size: 26px; letter-spacing: -0.01em; margin: 0 0 8px; }
-section > .wrap > p.sub { color: var(--muted); margin: 0 0 20px; max-width: 720px; }
-.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
-.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.step h3 { margin: 0 0 6px; font-size: 17px; }
-.step h3::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 14px; margin-right: 8px; }
-.step p { margin: 0; color: var(--muted); font-size: 15px; }
-.shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); display: block; margin-top: 14px; background: var(--surface); }
-.cmd { display: flex; align-items: stretch; gap: 0; margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--code); }
-.cmd code { flex: 1; padding: 10px 12px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-x: auto; white-space: pre; }
-.cmd button { border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; padding: 0 14px; cursor: pointer; white-space: nowrap; }
-.note { font-size: 14px; color: var(--muted); }
-.badge-warn { display: inline-block; font-size: 12px; font-weight: 700; color: var(--warn); background: var(--warn-soft); border-radius: 6px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
-.callout { background: var(--warn-soft); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 15px; margin: 12px 0; }
-.caps { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 15px; }
-.caps th, .caps td { text-align: left; padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
-.caps th { background: var(--accent-soft); border-top: 0; font-size: 14px; }
-.caps td:last-child { color: var(--muted); }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.card h3 { margin: 0 0 8px; font-size: 17px; }
-.tree { font: 13px/1.6 ui-monospace, Menlo, Consolas, monospace; background: var(--code); border-radius: 10px; padding: 12px 14px; white-space: pre; overflow-x: auto; margin: 10px 0 0; }
-textarea.prompt { width: 100%; min-height: 250px; font: 14px/1.55 ui-monospace, Menlo, Consolas, monospace; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--code); color: var(--text); resize: vertical; }
-details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 8px 0; }
-summary { font-weight: 600; cursor: pointer; }
-details p { margin: 8px 0 0; color: var(--muted); }
-footer { padding: 28px 0 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
-@media (max-width: 760px) {
-  .steps, .two { grid-template-columns: 1fr; }
-  .caps th:last-child, .caps td:last-child { display: none; }
-  .hero { padding-top: 20px; }
+body { margin: 0; background: var(--s1); color: var(--text); font: 16px/1.7 Inter, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
+p { text-wrap: pretty; }
+a { color: var(--clay-strong); text-underline-offset: 3px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+/* top */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--s1) 86%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s var(--ease); }
+.top.scrolled { border-bottom-color: var(--line); }
+.top .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); text-decoration: none; }
+.brand img { width: 26px; height: 26px; }
+.nav { display: flex; gap: 4px; align-items: center; }
+.nav a, .nav button { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), color .12s var(--ease); }
+.nav a:hover, .nav button:hover { background: var(--s0); color: var(--text); }
+@media (max-width: 640px) { .nav .hide-sm { display: none; } }
+
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); background: var(--s2); box-shadow: var(--ring); padding: 4px 12px 4px 8px; border-radius: 999px; margin-bottom: 22px; }
+.eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); box-shadow: 0 0 0 3px var(--clay-tint); }
+.hero h1 { font-size: clamp(34px, 5.2vw, 52px); line-height: 1.12; font-weight: 650; }
+.hero h1 em { font-style: normal; color: var(--clay); white-space: nowrap; }
+.hero .lead { font-size: 18px; color: var(--muted); margin: 18px 0 30px; max-width: 520px; }
+.choices { display: grid; gap: 12px; max-width: 520px; }
+.choice { display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px 18px; border-radius: 14px; background: var(--s2); box-shadow: var(--ring); color: var(--text); text-decoration: none; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+.choice:hover { box-shadow: var(--pop); transform: translateY(-1px); }
+.choice .ico { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--s0); color: var(--text-2); }
+.choice.primary .ico { background: var(--clay); color: var(--on-clay); }
+.choice strong { display: block; font-weight: 600; }
+.choice small { display: block; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.choice .arrow { margin-left: auto; flex: none; color: var(--faint); transition: transform .2s var(--ease), color .2s var(--ease); }
+.choice:hover .arrow { transform: translateX(3px); color: var(--clay); }
+
+/* chat illustration */
+.chat { background: var(--s2); border-radius: 20px; box-shadow: var(--pop); padding: 22px; display: grid; gap: 16px; }
+.bubble-user { justify-self: end; background: var(--s0); border-radius: 14px; padding: 10px 14px; max-width: 85%; font-size: 15px; }
+.answer { font-size: 15px; color: var(--text-2); }
+.answer .who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.answer .spark { width: 18px; height: 18px; color: var(--clay); }
+.due { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.due li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 12px; border-radius: 10px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); }
+.due b { font-weight: 600; color: var(--text); }
+.due span { font-size: 13px; color: var(--muted); }
+.due .st { grid-row: span 2; align-self: center; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.st.todo { color: var(--clay-strong); background: var(--clay-tint); }
+.st.done { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.composer { display: flex; align-items: center; gap: 10px; border-radius: 16px; padding: 10px 10px 10px 16px; box-shadow: 0 0.25rem 1.25rem rgba(0,0,0,.035), inset 0 0 0 1px var(--line-strong); font-size: 15px; }
+.composer .typed { flex: 1; color: var(--text); min-height: 1.6em; }
+.composer .typed::after { content: ""; display: inline-block; width: 2px; height: 1.05em; background: var(--clay); margin-left: 2px; vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.composer .send { width: 32px; height: 32px; border-radius: 9px; background: var(--clay); color: #fff; display: grid; place-items: center; flex: none; }
+.mock-note { text-align: center; font-size: 12px; color: var(--faint); margin-top: 10px; }
+
+/* sections */
+section { padding: 72px 0; scroll-margin-top: 60px; }
+section.alt { background: var(--s0); }
+.head { max-width: 640px; margin-bottom: 36px; }
+.head h2 { font-size: clamp(26px, 3.6vw, 34px); font-weight: 650; line-height: 1.25; }
+.head p { color: var(--muted); margin: 12px 0 0; font-size: 17px; }
+
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.step { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
+.step .n { width: 28px; height: 28px; border-radius: 8px; background: var(--clay-tint); color: var(--clay-strong); font-weight: 650; display: grid; place-items: center; font-size: 14px; margin-bottom: 14px; font-variant-numeric: tabular-nums; }
+.step h3 { font-size: 17px; font-weight: 600; }
+.step p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+
+.prompt-card { margin-top: 20px; background: var(--s2); border-radius: 20px; box-shadow: var(--pop); padding: 22px; }
+.prompt-card .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; background: var(--s0); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: background .12s var(--ease), color .12s var(--ease); }
+.seg button[aria-pressed="true"] { background: var(--s2); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.06), inset 0 0 0 1px var(--line); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-size: 15px; font-weight: 600; height: 40px; padding: 0 18px; border-radius: 10px; border: 0; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), box-shadow .12s var(--ease), transform .06s var(--ease); }
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--clay); color: var(--on-clay); }
+.btn.primary:hover { background: var(--clay-strong); }
+.btn.secondary { background: var(--s2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.btn.secondary:hover { background: var(--s0); }
+.btn:focus-visible, .choice:focus-visible, .seg button:focus-visible, summary:focus-visible, .nav a:focus-visible, .nav button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+.prompt-text { margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; line-height: 1.65; color: var(--text-2); white-space: pre-wrap; max-height: 196px; overflow: auto; overflow-wrap: anywhere; }
+.where { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+.shot { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: var(--pop); background: var(--s2); }
+.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.checks li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
+.checks svg { margin-top: 4px; color: var(--clay); }
+.checks b { font-weight: 600; display: block; }
+.checks span { color: var(--muted); font-size: 15px; }
+
+.asks { display: flex; flex-wrap: wrap; gap: 10px; }
+.asks span { background: var(--s2); box-shadow: var(--ring); padding: 9px 14px; border-radius: 999px; font-size: 15px; color: var(--text-2); }
+
+.trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.trust div { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 20px; }
+.trust h3 { font-size: 16px; font-weight: 600; }
+.trust p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+
+details { background: var(--s2); border-radius: 12px; box-shadow: var(--ring); margin: 0 0 10px; }
+summary { list-style: none; cursor: pointer; padding: 16px 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: ""; width: 8px; height: 8px; border-right: 1.5px solid var(--faint); border-bottom: 1.5px solid var(--faint); transform: rotate(45deg); transition: transform .2s var(--ease); flex: none; margin-top: -4px; }
+details[open] summary::after { transform: rotate(225deg); margin-top: 4px; }
+details .body { padding: 0 18px 16px; color: var(--muted); font-size: 15px; }
+details .body p { margin: 0 0 10px; }
+.faq { max-width: 760px; }
+
+.cmd { display: flex; align-items: stretch; margin: 8px 0; border-radius: 10px; overflow: hidden; background: var(--code); box-shadow: inset 0 0 0 1px var(--line); }
+.cmd code { flex: 1; padding: 10px 12px; font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text); overflow-x: auto; white-space: pre; }
+.cmd button { border: 0; border-left: 1px solid var(--line); background: var(--s2); color: var(--text-2); font: inherit; font-size: 13px; padding: 0 14px; cursor: pointer; }
+.cmd button:hover { color: var(--clay-strong); }
+.pill-warn { display: inline-block; font-size: 12px; font-weight: 600; color: var(--clay-strong); background: var(--clay-tint); border-radius: 6px; padding: 1px 8px; }
+
+footer { padding: 36px 0 48px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); }
+footer p { margin: 0 0 8px; max-width: 760px; }
+footer a { color: var(--muted); }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--text); color: var(--s1); padding: 10px 16px; border-radius: 10px; font-size: 14px; pointer-events: none; transition: opacity .2s var(--ease), transform .2s var(--ease); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; padding-top: 36px; gap: 36px; }
+  .two { grid-template-columns: 1fr; gap: 28px; }
+  .steps, .trust { grid-template-columns: 1fr; }
+  section { padding: 52px 0; }
+  .prompt-card .row .btn { width: 100%; }
+  .prompt-card .row > span { display: none; }
 }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <a class="brand" href="#"><img src="assets/icon.svg" alt="" width="28" height="28"> Liverpool Canvas</a>
-    <div class="top-links">
-      <a class="pill" id="repoLink" href="#" hidden>GitHub</a>
-      <button class="pill" id="langBtn" type="button">English</button>
-    </div>
-  </header>
-</div>
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="assets/icon.svg" alt=""> Liverpool Canvas</a>
+    <nav class="nav">
+      <a class="hide-sm" href="#setup" data-zh="安装" data-en="Set up"></a>
+      <a class="hide-sm" href="#download" data-zh="下载课件" data-en="Downloads"></a>
+      <a class="hide-sm" href="#faq" data-zh="常见问题" data-en="FAQ"></a>
+      <a id="repoLink" href="#" hidden>GitHub</a>
+      <button id="langBtn" type="button">EN</button>
+    </nav>
+  </div>
+</header>
 
 <main>
 <div class="wrap hero">
-  <h1 data-zh="把利物浦 Canvas 接到你的 AI 助手" data-en="Connect Liverpool Canvas to your AI assistant"></h1>
-  <p class="lead" data-zh="用学校的正常登录（SSO + MFA）连接 Canvas，无需个人 Access Token。之后在 Claude、Codex 等助手里查询课程、截止任务、公告、作业要求和成绩，读取和下载课件；以后下载只补本地没有的新文件。" data-en="Sign in to Canvas the usual way (university SSO + MFA), no personal access token. Then ask Claude, Codex and other assistants about your courses, deadlines, announcements, assignment briefs and grades, read and download course files, and later fetch only files you do not have yet."></p>
-  <ul class="chips">
-    <li data-zh="正常学校登录" data-en="Normal university sign-in"></li>
-    <li data-zh="无需 Access Token" data-en="No access token"></li>
-    <li data-zh="对 Canvas 只读" data-en="Read-only on Canvas"></li>
-    <li data-zh="只补新文件" data-en="Only new files"></li>
-    <li data-zh="开源 · MIT" data-en="Open source · MIT"></li>
-  </ul>
-  <div class="cta">
-    <a class="btn primary" href="#ai-setup" data-zh="让 AI 帮我接入" data-en="Let my AI set it up"></a>
-    <a class="btn ghost" href="#download" data-zh="直接下载课件" data-en="Just download course files"></a>
-    <a class="btn ghost" href="#start" data-zh="复制命令自己启动" data-en="Copy a command and run it"></a>
+  <div>
+    <div class="eyebrow"><span class="dot"></span><span data-zh="给利物浦大学同学的免费小工具" data-en="A free tool for University of Liverpool students"></span></div>
+    <h1 data-zh-html="让 AI 帮你<br><em>盯着 Canvas</em>" data-en-html="Let AI <em>keep an eye on Canvas</em> for you"></h1>
+    <p class="lead" data-zh="作业什么时候交、老师发了什么通知、课件在哪儿，直接问 AI 就行。也可以一键把课件下到电脑，以后只下新的。" data-en="When is it due, what did the lecturer post, where are the slides? Just ask your AI. Or save all your course files to your computer in one go, and later get only the new ones."></p>
+    <div class="choices">
+      <a class="choice primary" href="#setup" data-goto="ai">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg></span>
+        <span><strong data-zh="让 AI 帮我装" data-en="Let my AI set it up"></strong><small data-zh="复制一段话发给 AI，它帮你装好，你只需登录学校账号" data-en="Send your AI one message; it installs everything, you just sign in"></small></span>
+        <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </a>
+      <a class="choice" href="#download">
+        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></span>
+        <span><strong data-zh="我只想下载课件" data-en="I just want my course files"></strong><small data-zh="勾选课程，存到电脑，不用 AI 也行" data-en="Tick your courses and save them; no AI needed"></small></span>
+        <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div aria-hidden="true">
+    <div class="chat">
+      <div class="bubble-user" data-zh="这周有什么要交？我交了没？" data-en="What's due this week, and have I submitted?"></div>
+      <div class="answer">
+        <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助手" data-en="Your AI assistant"></span></div>
+        <span data-zh="这周有两项：" data-en="Two things this week:"></span>
+        <ul class="due">
+          <li><b>MATH253 Assignment 1</b><span class="st todo" data-zh="未提交" data-en="Not submitted"></span><span data-zh="周五 17:00 截止（英国时间）" data-en="Due Fri 17:00 UK time"></span></li>
+          <li><b>MATH268 Quiz 3</b><span class="st done" data-zh="已提交" data-en="Submitted"></span><span data-zh="周日 23:59 截止" data-en="Due Sun 23:59"></span></li>
+        </ul>
+      </div>
+      <div class="composer"><span class="typed" id="typed"></span><span class="send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></span></div>
+    </div>
+    <p class="mock-note" data-zh="示意图，课程为虚构" data-en="Illustration with fictional courses"></p>
   </div>
 </div>
 
-<section id="start">
+<section id="setup" class="alt">
   <div class="wrap">
-    <h2 data-zh="三步开始" data-en="Three steps"></h2>
-    <p class="sub" data-zh="需要 Node.js 22 或更新版本，以及 Chrome 或 Edge。不需要克隆仓库，也不用手动改配置文件。" data-en="You need Node.js 22 or newer and Chrome or Edge. No cloning, no editing config files by hand."></p>
-    <div class="steps">
-      <div class="step"><h3 data-zh="复制命令或安装 Prompt" data-en="Copy a command or the install prompt"></h3><p data-zh="在终端运行下面的命令；或者把安装 Prompt 交给能操作终端的 AI。" data-en="Run the command below in a terminal, or hand the install prompt to an AI that can use your terminal."></p></div>
-      <div class="step"><h3 data-zh="学校登录" data-en="Sign in"></h3><p data-zh="一个独立的 Chrome/Edge 窗口打开利物浦 Canvas，你自己输入账号、密码和 MFA，完成后窗口自动关闭。" data-en="A separate Chrome/Edge window opens Liverpool Canvas. You type your account, password and MFA yourself; the window closes by itself."></p></div>
-      <div class="step"><h3 data-zh="在 AI 中使用" data-en="Use it in your AI"></h3><p data-zh="选一个 AI 应用接入（会先备份它的配置），重启后直接提问；也可以只用本地网页下载课件。" data-en="Pick one AI app to connect (its settings are backed up first) and ask away after a restart, or just use the local page to download files."></p></div>
+    <div class="head">
+      <h2 data-zh="三步用上，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
+      <p data-zh="适合 Claude 桌面版（Code 功能）、Codex 这类能在你电脑上操作的 AI。普通网页聊天没法帮你安装，可以看下面“常见问题”里的“自己动手装”。" data-en="Works with AIs that can act on your computer, such as the Claude desktop app (Code) or Codex. A plain web chat can't install anything; see “Install it yourself” in the questions below."></p>
     </div>
-    <div id="cmdBlock"></div>
-    <img class="shot" src="assets/step-1-sign-in.png" alt="" loading="lazy" width="1180" height="820">
-  </div>
-</section>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会检查电脑环境、装好工具，过程中问你几个简单问题。" data-en="It checks your computer, installs the tool and asks you a couple of simple questions."></p></div>
+      <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: account, password and MFA. Never send your password to the AI."></p></div>
+      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，直接提问" data-en="Restart your AI and ask away"></h3><p data-zh="比如“这周有什么要交？”或者“把 MATH253 的课件都下下来”。" data-en="For example “What's due this week?” or “Download all the MATH253 files”."></p></div>
+    </div>
 
-<section id="capabilities">
-  <div class="wrap">
-    <h2 data-zh="接入后可以这样用" data-en="What you can ask"></h2>
-    <p class="sub" data-zh="工具本身不带模型，也不需要额外的 API key：你在自己的 AI 应用里提问，它通过这个工具读取你有权限看到的 Canvas 内容。" data-en="The tool has no model of its own and needs no extra API key: you ask in your own AI app, which reads the Canvas content you can access through this tool."></p>
-    <table class="caps">
-      <thead><tr><th data-zh="能力" data-en="Capability"></th><th data-zh="可以这样问" data-en="Try asking"></th><th data-zh="说明" data-en="Notes"></th></tr></thead>
-      <tbody id="capRows"></tbody>
-    </table>
+    <div class="prompt-card">
+      <div class="row">
+        <div class="seg" role="group">
+          <button type="button" data-mode="ai" aria-pressed="true" data-zh="接入 AI（推荐）" data-en="Connect my AI (recommended)"></button>
+          <button type="button" data-mode="files" aria-pressed="false" data-zh="只下载课件" data-en="Only download files"></button>
+        </div>
+        <span style="flex:1"></span>
+        <button class="btn primary" type="button" id="copyPrompt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span data-zh="复制这段话" data-en="Copy message"></span></button>
+      </div>
+      <div class="prompt-text" id="prompt"></div>
+      <p class="where" data-zh="课件默认存在“文稿 / Documents”里的 Canvas 文件夹，按“课程 / 模块 / 文件”整理，可以改。" data-en="Files go to a Canvas folder in your Documents by default, sorted by course / module / file. You can change it."></p>
+    </div>
+
+    <div class="head" style="margin: 48px 0 16px">
+      <h2 style="font-size: 22px" data-zh="装好以后，可以这样问" data-en="Once it's set up, try asking"></h2>
+    </div>
+    <div class="asks" id="asks"></div>
   </div>
 </section>
 
 <section id="download">
-  <div class="wrap">
-    <h2 data-zh="不用 AI，直接下载课件" data-en="Download course files without an AI"></h2>
-    <p class="sub" data-zh="运行 web 命令会在你的电脑上打开一个本地网页（只有本机能访问）：选择课程和保存位置，先预览将下载哪些文件，再一键下载。这个公开介绍页本身无法访问你的电脑或学校账号。" data-en="The web command opens a local page on your computer (reachable only from this computer): choose courses and a folder, preview what will be downloaded, then download. This public page itself cannot reach your computer or your university account."></p>
-    <div id="webCmd"></div>
-    <div class="two">
-      <div>
-        <img class="shot" src="assets/step-3-choose.png" alt="" loading="lazy" width="1180" height="820">
+  <div class="wrap two">
+    <div>
+      <div class="head" style="margin-bottom: 24px">
+        <h2 data-zh="课件一键存到电脑" data-en="All your course files, in one click"></h2>
+        <p data-zh="装好后会在电脑上打开一个下载页面：勾选课程、确认保存位置，点一下就好。以后只下新的。" data-en="Once set up, a download page opens on your computer: tick your courses, confirm the folder, click once. Later, only new files."></p>
       </div>
-      <div class="card">
-        <h3 data-zh="文件存在哪里" data-en="Where files go"></h3>
-        <p class="note" data-zh="默认在系统“文稿 / Documents”下的 Canvas 文件夹，可以改。按“课程代码与学期 / 模块或页面 / 文件”整理。" data-en="By default a Canvas folder in your Documents, which you can change. Organised as course code and term / module or page / file."></p>
-        <div class="tree">Documents/Canvas/
-├── MATH253 (2026-27 Semester 1)/
-│   ├── Week 1/
-│   │   ├── Week 1 slides.pdf
-│   │   └── Problem sheet 1.pdf
-│   ├── Announcements/
-│   └── Assignments/
-└── MATH268 (2026-27 Semester 1)/
-    └── Lectures/</div>
-        <p class="note" data-zh="（示例为虚构课程）" data-en="(fictional example)"></p>
-      </div>
+      <ul class="checks">
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="找得全" data-en="Finds everything"></b><span data-zh="不只是 Files 页，模块、网页里的链接、公告附件、作业说明里的文件都会找到。" data-en="Not just the Files tab: modules, links inside pages, announcement attachments and assignment briefs too."></span></div></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="不重复、不覆盖" data-en="No duplicates, no overwriting"></b><span data-zh="下过的文件直接跳过，你改过的文件也不会被替换。老师更新了会提醒你。" data-en="Files you have are skipped, and your edited copies are never replaced. You're told when a lecturer updates one."></span></div></li>
+        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="下次点“补新文件”" data-en="Next time: “Fetch new files”"></b><span data-zh="只下载新上传的，几秒就好。不会在后台偷偷运行。" data-en="Only newly uploaded files, in seconds. Nothing runs in the background."></span></div></li>
+      </ul>
+      <p style="margin-top: 22px"><a class="btn secondary" href="#setup" data-goto="files" data-zh="复制“只下载课件”的那段话" data-en="Copy the “only download files” message"></a></p>
     </div>
+    <img class="shot" src="assets/step-3-choose.png" alt="" loading="lazy" width="1180" height="820">
   </div>
 </section>
 
-<section id="only-new">
+<section class="alt">
   <div class="wrap">
-    <h2 data-zh="以后只补新文件" data-en="Later, only new files"></h2>
-    <p class="sub" data-zh="下次在 AI 里说“补下新文件”、在本地网页点“补新文件”，或运行 sync 命令，都只会处理你明确选过的课程：" data-en="Next time, ask your AI to fetch new files, click “Fetch new files” on the local page, or run the sync command. Only the courses you chose are checked:"></p>
-    <div class="two">
-      <div class="card"><ul>
-        <li data-zh="已下载且本地还在的文件：直接跳过，不重新下载、不覆盖、不移动。" data-en="Files you have: skipped. Not downloaded again, replaced or moved."></li>
-        <li data-zh="老师在 Canvas 上更新了同一个文件：提示你，但保留你本地的版本。" data-en="A teacher updated a file on Canvas: you are told, and your copy is kept."></li>
-        <li data-zh="同名的新上传：另存为“文件名 (canvas-编号)”，两份都保留。" data-en="A new upload with the same name: saved as “name (canvas-ID)”; both are kept."></li>
-        <li data-zh="你删掉了本地文件：下次会补回来。" data-en="You deleted a local copy: it comes back next time."></li>
-        <li data-zh="Canvas 上删除了文件：你本地的副本不会被删。" data-en="A file removed from Canvas: your local copy stays."></li>
-      </ul></div>
-      <div class="card"><ul>
-        <li data-zh="文件不只从 Files 页找：模块、模块里的网页、网页互相链接的页面、课程首页、公告附件和作业描述都会扫描；Files 或 Pages 列表被隐藏也能找到。" data-en="Files are not only taken from the Files tab: modules, pages in modules, pages they link to, the home page, announcement attachments and assignment descriptions are scanned, even when Files or Pages are hidden."></li>
-        <li data-zh="同一文件出现在多处只下载一次；没权限或锁定的条目会注明原因；扫描不完整会明确告诉你，不会假装“全部完成”。" data-en="A file found in several places is downloaded once; locked items are listed with a reason; an incomplete scan is reported as such, never as “all done”."></li>
-        <li data-zh="不会后台定时运行，只在你点击或运行时检查。" data-en="Nothing runs in the background; it only checks when you ask."></li>
-      </ul></div>
-    </div>
-    <img class="shot" src="assets/step-4-done.png" alt="" loading="lazy" width="1180" height="820">
-  </div>
-</section>
-
-<section id="ai-setup">
-  <div class="wrap">
-    <h2 data-zh="交给 AI 帮我接入" data-en="Let your AI set it up"></h2>
-    <p class="sub" data-zh="适用于能在你电脑上运行命令的 AI，例如 Claude Code、Codex 或 Claude Desktop 的代码功能。复制下面这段话发给它。普通网页聊天不能在你的电脑上安装程序，这种情况请看下面的手动方式。" data-en="For an AI that can run commands on your computer, such as Claude Code, Codex or Claude Desktop with coding tools. Copy this and send it. A plain web chat cannot install anything on your computer; use the manual steps below instead."></p>
-    <div id="promptState"></div>
-    <textarea class="prompt" id="prompt" readonly></textarea>
-    <p><button class="btn primary" type="button" id="copyPrompt" data-zh="复制安装 Prompt" data-en="Copy the install prompt"></button></p>
-    <div class="card">
-      <h3 data-zh="没有能操作终端的 AI？手动运行" data-en="No AI with terminal access? Do it yourself"></h3>
-      <ol>
-        <li data-zh="安装 Node.js（LTS 版）和 Chrome 或 Edge。" data-en="Install Node.js (LTS) and Chrome or Edge."></li>
-        <li data-zh="打开终端：macOS 用“终端”，Windows 用“PowerShell”或“终端”。" data-en="Open a terminal: Terminal on macOS, PowerShell or Terminal on Windows."></li>
-        <li data-zh="运行上面“三步开始”里的命令，按提示确认保存位置、登录、选择要接入的 AI 应用（也可以跳过）。" data-en="Run the command from “Three steps”, then follow the prompts: confirm the folder, sign in, pick an AI app (or skip)."></li>
-        <li data-zh="完全退出并重新打开你的 AI 应用，然后问：“列出我的课程和近期作业截止”。" data-en="Quit and reopen your AI app, then ask: “List my courses and upcoming deadlines”."></li>
-      </ol>
-    </div>
-  </div>
-</section>
-
-<section id="system">
-  <div class="wrap">
-    <h2 data-zh="macOS 与 Windows 提示" data-en="macOS and Windows notes"></h2>
-    <div class="two">
-      <div class="card">
-        <h3 data-zh="检查运行环境" data-en="Check your setup"></h3>
-        <p class="note" data-zh="在终端运行，应显示 v22 或更高：" data-en="Run this in a terminal; it should print v22 or higher:"></p>
-        <div class="cmd"><code>node -v</code><button type="button" data-copy="node -v" data-zh="复制" data-en="Copy"></button></div>
-        <p class="note" data-zh="还需要已安装 Google Chrome 或 Microsoft Edge（Windows 自带 Edge）。登录窗口用的是独立的浏览器资料，不影响你平时的浏览器。" data-en="Google Chrome or Microsoft Edge must be installed (Windows includes Edge). The sign-in window uses a separate browser profile and leaves your everyday browser alone."></p>
-      </div>
-      <div class="card">
-        <h3>macOS</h3>
-        <p class="note" data-zh="在“应用程序 → 实用工具 → 终端”里运行命令。第一次接入 Claude Desktop 后，需要从菜单完全退出（⌘Q）再打开。" data-en="Run commands in Applications → Utilities → Terminal. After connecting Claude Desktop the first time, quit it fully (⌘Q) and reopen it."></p>
-        <h3>Windows</h3>
-        <p class="note" data-zh="在“开始”菜单搜索 PowerShell 打开。如果 npx 提示脚本被禁止运行，可以改用“命令提示符（cmd）”运行同一条命令。接入 Claude Desktop 后，在任务栏托盘里右键退出，再重新打开。" data-en="Open PowerShell from the Start menu. If npx says scripts are disabled, run the same command in Command Prompt (cmd). After connecting Claude Desktop, quit it from the tray icon and reopen it."></p>
-        <p class="note" data-zh="Linux 尽量兼容，但尚未经过完整测试。" data-en="Linux should work but has not been fully tested."></p>
-      </div>
+    <div class="head"><h2 data-zh="放心用" data-en="Safe to use"></h2></div>
+    <div class="trust">
+      <div><h3 data-zh="密码只在你自己手里" data-en="Your password stays with you"></h3><p data-zh="在学校的登录页面自己输入，工具和 AI 都拿不到。登录状态只存在你的电脑上。" data-en="You type it on the university sign-in page. Neither the tool nor the AI gets it. The sign-in is stored only on your computer."></p></div>
+      <div><h3 data-zh="只看不改" data-en="Look, don't touch"></h3><p data-zh="只读取你本来就能看到的内容，不会帮你交作业、发帖或改任何东西。" data-en="It only reads what you can already see. It never submits work, posts or changes anything."></p></div>
+      <div><h3 data-zh="免费、开源、非官方" data-en="Free, open source, unofficial"></h3><p data-zh="同学维护的开源项目，与学校无关。AI 读到的课程内容会发给你用的 AI 服务，和你平时粘贴进聊天一样。" data-en="An open-source project by students, not the university. Course content your AI reads goes to that AI service, like anything you paste into a chat."></p></div>
     </div>
   </div>
 </section>
 
 <section id="faq">
-  <div class="wrap">
-    <h2>FAQ</h2>
-    <details><summary data-zh="登录窗口是什么？为什么没有我平时的 Google 登录？" data-en="What is the sign-in window? Why am I not signed in to Google there?"></summary><p data-zh="它是一个用独立资料启动的 Chrome/Edge 窗口，只用于登录利物浦 Canvas，不会读取你日常浏览器的登录状态。账号、密码和 MFA 都由你在窗口里自己输入，不要发到任何聊天中。登录完成后窗口自动关闭。" data-en="It is Chrome/Edge started with a separate profile, only for signing in to Liverpool Canvas; it does not use your everyday browser’s sign-ins. You type your account, password and MFA there yourself, never into a chat. It closes once you are in."></p></details>
-    <details><summary data-zh="会话过期了怎么办？" data-en="My session expired. Now what?"></summary><p data-zh="AI 会提示你重新登录；如果学校的单点登录还记得你，窗口会自动完成。也可以运行 login 命令，或在本地网页点“打开登录窗口”。遇到人机验证或安全拦截时，请在窗口里自己完成，工具不会尝试绕过。" data-en="Your AI will say so and a sign-in window opens; if the university SSO still remembers you it completes by itself. You can also run the login command or click “Open the sign-in window” on the local page. Security checks are always left to you; the tool never tries to get around them."></p></details>
-    <details><summary data-zh="找不到某门课？" data-en="A course is missing?"></summary><p data-zh="课程列表默认按学期分组，本学期在最前；往届课程在本地网页里也会显示，命令行加 --include-past。同一课程代码有多个学期时，会让你选择，不会自己猜。" data-en="Courses are grouped by term with this term first; past courses also show on the local page, and on the command line with --include-past. When a code matches courses in several terms you are asked which one; it never guesses."></p></details>
-    <details><summary data-zh="为什么有些文件显示“无权限”或“已锁定”？" data-en="Why are some files “no access” or “locked”?"></summary><p data-zh="老师可能还没发布、设置了开放时间或限制了访问。工具只能读取你在网页上本来就能打开的内容，这些条目会被跳过并注明原因，之后开放了再补就行。" data-en="The teacher may not have published them yet, set an availability date or restricted access. The tool only reads what you can already open in your browser; these items are skipped with a reason and can be fetched later."></p></details>
-    <details><summary data-zh="为什么旧文件被“跳过”？" data-en="Why were old files “skipped”?"></summary><p data-zh="因为你已经有了。工具记录每个文件来自哪门课、哪个 Canvas 文件编号、存在哪里；本地文件还在就不会再下载或覆盖。如果老师改过文件，会提示你，但保留你本地的版本。" data-en="Because you already have them. The tool records which course and Canvas file each file came from and where it went; while your copy is there it is not downloaded again or replaced. If the teacher changed it, you are told and your copy is kept."></p></details>
-    <details><summary data-zh="能改保存位置吗？" data-en="Can I change the download folder?"></summary><p data-zh="可以，在本地网页点“更改”，或运行命令时加 --folder。新位置被当作新的下载目的地：原文件夹里的文件不会移动，需要重新选择课程。" data-en="Yes: click “Change” on the local page or pass --folder. The new folder is a new destination: files in the old one stay where they are, and you choose courses again."></p></details>
-    <details><summary data-zh="怎样清除登录状态？" data-en="How do I clear the sign-in?"></summary><p data-zh="运行 logout 命令，或在本地网页点“退出登录”。这会删除本机保存的会话和登录用的浏览器资料，不会删除已下载的课件。" data-en="Run the logout command, or click “Sign out” on the local page. This removes the saved session and the sign-in browser profile on this computer; downloaded files are kept."></p></details>
-    <details><summary data-zh="我的数据会去哪里？" data-en="Where does my data go?"></summary><p data-zh="登录 cookie 和密码只留在你的电脑上，不会发给本网站、AI 或任何第三方。下载的课件存在你选的文件夹。但 AI 通过这个工具读到的课程内容，会像你粘贴到聊天里的内容一样，发送给你选用的 AI 应用及其服务商。没有统计、遥测或广告。" data-en="Sign-in cookies and your password stay on your computer and are never sent to this website, the AI or anyone else. Downloaded files stay in your folder. Course content the AI reads through this tool is sent to the AI app you use and its provider, like anything you paste into a chat. No analytics, telemetry or ads."></p></details>
+  <div class="wrap faq">
+    <div class="head"><h2 data-zh="常见问题" data-en="Questions"></h2></div>
+    <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge），以及 Node.js（免费，到 nodejs.org 下载 LTS 版，一路下一步即可）。如果让 AI 帮你装，它会先帮你检查这些。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge) and Node.js (free: get the LTS version from nodejs.org and click through the installer). If your AI sets it up, it checks these first."></p></div></details>
+    <details><summary data-zh="弹出的登录窗口为什么没有我平时的登录？" data-en="Why isn't the sign-in window logged in like my normal browser?"></summary><div class="body"><p data-zh="那是一个单独的浏览器窗口，专门用来登录 Canvas，不会碰你平时浏览器里的账号。登录成功后会自动关闭。" data-en="It's a separate browser window just for Canvas and doesn't touch your everyday browser accounts. It closes by itself once you're in."></p></div></details>
+    <details><summary data-zh="过几天用不了了？" data-en="It stopped working after a few days?"></summary><div class="body"><p data-zh="登录过期了。AI 或下载页面会提示你，在弹出的窗口重新登录一次就好。" data-en="Your sign-in expired. Your AI or the download page will say so; just sign in again in the window that opens."></p></div></details>
+    <details><summary data-zh="为什么有些文件下不了？" data-en="Why can't some files be downloaded?"></summary><div class="body"><p data-zh="老师还没开放、设了开放时间或者限制了权限。会标明原因跳过，开放后点“补新文件”就能拿到。" data-en="The lecturer hasn't released them yet, set a date, or restricted them. They're skipped with a reason; click “Fetch new files” once they open."></p></div></details>
+    <details><summary data-zh="想换个文件夹 / 想退出登录？" data-en="Change the folder / sign out?"></summary><div class="body"><p data-zh="在下载页面里点“更改”换文件夹（原来的文件不会被动）；点“退出登录”清除这台电脑上的登录状态，已下载的课件不会删。" data-en="Click “Change” on the download page for a new folder (old files stay put); “Sign out” clears the sign-in on this computer and keeps your files."></p></div></details>
+    <details id="manual"><summary data-zh="自己动手装（会用终端的同学）" data-en="Install it yourself (if you use a terminal)"></summary><div class="body">
+      <p data-zh="在终端（Mac：终端；Windows：PowerShell）里依次运行：" data-en="In a terminal (Terminal on Mac, PowerShell on Windows), run:"></p>
+      <div id="manualCmds"></div>
+      <p data-zh="setup 会问你保存位置、打开登录窗口，并让你选一个要接入的 AI（可以跳过）。之后打开下载页面用 web，补新文件用 sync。" data-en="setup asks for a folder, opens the sign-in window, and lets you pick one AI app to connect (or skip). Afterwards use web for the download page and sync for new files."></p>
+      <p id="manualMore"></p>
+    </div></details>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <p data-zh="Liverpool Canvas 是学生维护的非官方开源工具，与利物浦大学和 Instructure 没有关联，也未获其认可。它只读取你自己账号本来就能看到的内容，请遵守学校的 IT 使用规定和各课程关于 AI 使用的要求，不要外传课程资料。" data-en="Liverpool Canvas is an unofficial open-source tool maintained by students. It is not affiliated with or endorsed by the University of Liverpool or Instructure. It only reads what your own account can already see. Follow the university’s IT rules and each module’s rules on AI use, and keep course materials to yourself."></p>
+    <p data-zh="Liverpool Canvas 是学生维护的非官方开源工具，与利物浦大学和 Instructure 没有关联。请遵守学校 IT 规定和各课程关于 AI 的要求，不要外传课程资料。" data-en="Liverpool Canvas is an unofficial open-source tool maintained by students, not affiliated with the University of Liverpool or Instructure. Follow the university's IT rules and each module's AI rules, and keep course materials to yourself."></p>
     <p id="footMeta"></p>
   </div>
 </footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script id="release" type="application/json">{"npmPackage":null,"published":false,"version":"0.0.0","repository":null,"pagesUrl":null}</script>
 <script>
@@ -246,74 +318,110 @@ footer { padding: 28px 0 40px; color: var(--muted); font-size: 14px; border-top:
   const R = JSON.parse(document.getElementById('release').textContent);
   let lang = 'zh';
   try { lang = localStorage.getItem('lc-site-lang') || 'zh'; } catch { /* no storage */ }
+  let mode = 'ai';
   const T = (zh, en) => (lang === 'zh' ? zh : en);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  const run = R.published ? `npx -y ${R.npmPackage}@latest` : null;
+  const $ = (id) => document.getElementById(id);
 
-  const CAPS = [
-    ['正常学校登录与会话续期', 'University sign-in and renewal', '（自动）登录一次，之后自动续期', '(automatic) sign in once, renewed as needed', '在浏览器里完成 SSO / MFA，无需 Access Token', 'SSO / MFA in a browser window, no access token'],
-    ['课程列表与学期识别', 'Courses and terms', '“列出我这学期的课程”', '“List my courses this term”', '本学期在前，往届和其他站点分开', 'This term first; past terms and other sites apart'],
-    ['近期与逾期待办、提交状态', 'Upcoming and overdue work', '“这周有什么要交？哪些还没提交？”', '“What is due this week, and what haven’t I submitted?”', '英国时间（含夏令时）；公告发布时间不会当成截止日期', 'UK time incl. BST; announcement dates are never shown as deadlines'],
-    ['作业详情、评分标准与附件', 'Assignment briefs, rubrics, attachments', '“把这次作业的要求和 rubric 给我”', '“Give me this assignment’s brief and rubric”', '', ''],
-    ['课程公告及其附件', 'Announcements and attachments', '“老师最近有什么通知？”', '“Any new announcements from my lecturers?”', '', ''],
-    ['模块结构和课程页面', 'Modules and pages', '“第三周的资料放在哪？”', '“Where are the week 3 materials?”', '', ''],
-    ['文件搜索、读取与文本提取', 'Find and read files', '“读一下 Week 2 的讲义，总结重点”', '“Read the week 2 slides and summarise them”', 'PDF、DOCX、HTML、文本可直接读取，其他格式可下载', 'PDF, DOCX, HTML and text are read; other formats are downloaded'],
-    ['单文件和整门课下载', 'Download files and whole courses', '“下载这门课的全部资料，以后只补新的”', '“Download everything for this course, and later only new files”', '先预览；已有文件不重复下载、不覆盖', 'Preview first; files you have are never downloaded again or replaced'],
-    ['讨论主题与回复', 'Discussions', '“讨论区里关于第二题大家怎么说？”', '“What did people say about Q2 in the discussion?”', '', ''],
-    ['成绩与教师反馈', 'Grades and feedback', '“我这门课现在多少分？老师评语是什么？”', '“What is my grade so far, and what feedback did I get?”', '仅限你自己有权限看的分数和评语', 'Only your own grades and comments'],
-    ['Canvas 站内信', 'Canvas Inbox', '“有没有老师给我发的站内信？”', '“Any Canvas messages from my tutors?”', '只读', 'Read-only'],
-    ['日历', 'Calendar', '“下个月有哪些考试和课程活动？”', '“Which tests and events are on next month?”', '', ''],
-    ['其他 Canvas 只读接口', 'Other read-only Canvas data', '“列出这门课的测验”', '“List the quizzes in this course”', '受控的 GET 接口，不会提交或修改任何内容', 'Controlled GET only; never submits or changes anything'],
+  // How to run it today. Until the npm package is published this is the verified clone path.
+  const repo = R.repository;
+  const steps = R.published
+    ? [`npx -y ${R.npmPackage}@latest setup`]
+    : repo ? [`git clone ${repo}.git`, 'cd liverpool-canvas', 'npm install', 'node bin/cli.js setup'] : [];
+
+  const ASKS = [
+    ['这周有什么要交？我交了没？', 'What is due this week, and have I submitted?'],
+    ['老师最近发了什么通知？', 'Any new announcements from my lecturers?'],
+    ['把 Assignment 2 的要求和评分标准给我', 'Show me the Assignment 2 brief and rubric'],
+    ['读一下第三周的讲义，帮我总结重点', 'Read the week 3 slides and summarise them'],
+    ['我这门课现在多少分？老师怎么评价的？', 'What is my grade so far, and what was the feedback?'],
+    ['下个月有哪些考试？', 'Which tests are coming up next month?'],
+    ['把 MATH253 的课件都下下来，以后只下新的', 'Download all MATH253 files, and later only new ones'],
   ];
 
-  function cmdHtml(cmd, unpublishedLabel) {
-    return `<div class="cmd"><code>${esc(cmd)}</code><button type="button" data-copy="${esc(cmd)}">${T('复制', 'Copy')}</button></div>${unpublishedLabel ? `<p class="note"><span class="badge-warn">${T('发布后可用', 'Available once published')}</span> ${unpublishedLabel}</p>` : ''}`;
-  }
-
   function promptText() {
-    return [
+    const lines = [
       T('请帮我安装并接入 Liverpool Canvas，用于我的利物浦大学 Canvas。', 'Please install and connect Liverpool Canvas for my University of Liverpool Canvas account.'),
-      `${T('项目仓库', 'Repository')}: ${R.repository || T('（尚未发布）', '(not published yet)')}`,
-      `${T('npm 包与版本', 'npm package and version')}: ${R.published ? `${R.npmPackage}@${R.version}` : T('（尚未发布）', '(not published yet)')}`,
+      `${T('项目仓库', 'Repository')}: ${repo || T('（尚未发布）', '(not published yet)')}`,
+      `${T('npm 包与版本', 'npm package and version')}: ${R.published ? `${R.npmPackage}@${R.version}` : T('（尚未发布到 npm，请按 README 用 git clone 安装）', '(not on npm yet; install with git clone as the README says)')}`,
       `${T('学校地址', 'Canvas address')}: https://canvas.liverpool.ac.uk`,
       '',
       T('请先阅读项目 README，检查 Node.js 和 Chrome/Edge，然后按项目已验证的命令开始设置。', 'First read the project README, check Node.js and Chrome/Edge, then start setup with the commands the project documents.'),
       T('让我在新开的学校登录窗口里自己输入账号、密码和 MFA，不要让我把密码发到聊天里。', 'Let me type my account, password and MFA myself in the sign-in window it opens; never ask me to send my password in the chat.'),
-      T('帮我确认适用的 AI 客户端并配置对应 MCP 服务；保留原设置并备份，不修改其他客户端。', 'Help me pick the AI app to use and configure its MCP server; keep and back up its existing settings, and do not change other apps.'),
-      T('接入完成后，我希望能查询课程、作业截止与提交状态、公告、作业要求和评分标准，也能读取资料、查看成绩反馈、讨论、站内信和日历。', 'Afterwards I want to ask about courses, deadlines and submission status, announcements, assignment briefs and rubrics, and read files, grades and feedback, discussions, Inbox messages and the calendar.'),
-      T('如果我选择直接使用本地网页，请按该路径启动。', 'If I choose to use the local page instead, start that.'),
+    ];
+    if (mode === 'ai') {
+      lines.push(
+        T('帮我确认适用的 AI 客户端并配置对应 MCP 服务；保留原设置并备份，不修改其他客户端。', 'Help me pick the AI app to use and configure its MCP server; keep and back up its existing settings, and do not change other apps.'),
+        T('接入完成后，我希望能查询课程、作业截止与提交状态、公告、作业要求和评分标准，也能读取资料、查看成绩反馈、讨论、站内信和日历。', 'Afterwards I want to ask about courses, deadlines and submission status, announcements, assignment briefs and rubrics, and read files, grades and feedback, discussions, Inbox messages and the calendar.'),
+        T('如果我选择直接使用本地网页，请按该路径启动。', 'If I choose to use the local page instead, start that.'),
+      );
+    } else {
+      lines.push(T('我只想下载课件：不用配置 AI 客户端，装好并登录后直接帮我打开本地下载网页。', 'I only want to download course files: skip connecting an AI app, and after setup and sign-in open the local download page for me.'));
+    }
+    lines.push(
       T('下载前让我选择课程和下载目录。默认只下载本地没有的文件，已有文件不要重复下载、覆盖或移动。', 'Before downloading, let me choose the courses and the folder. Only download files I do not have; never download again, overwrite or move existing files.'),
       T('如果你没有本地终端或文件操作能力，请提供我可以自己执行的具体步骤，不要声称已经完成安装。', 'If you cannot use a terminal or files on my computer, give me exact steps to do it myself, and do not claim the installation is done.'),
-    ].join('\n');
+    );
+    return lines.join('\n');
   }
 
   function render() {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     for (const el of document.querySelectorAll('[data-zh]')) el.textContent = lang === 'zh' ? el.dataset.zh : el.dataset.en;
-    document.getElementById('langBtn').textContent = lang === 'zh' ? 'English' : '中文';
-    document.getElementById('capRows').innerHTML = CAPS.map((c) => `<tr><td><strong>${esc(T(c[0], c[1]))}</strong></td><td>${esc(T(c[2], c[3]))}</td><td>${esc(T(c[4], c[5]))}</td></tr>`).join('');
-    const pending = T('npm 包尚未发布，这条命令现在还不能用。现在请按 GitHub 仓库 README 中“启动”一节，用 git clone 运行。', 'The npm package is not published yet, so this command does not work yet. For now, follow the clone-and-run steps under “启动” (Start) in the repository README.');
-    const shown = run || `npx -y ${R.npmPackage || '@YOUR_NPM_SCOPE/liverpool-canvas'}@latest`;
-    document.getElementById('cmdBlock').innerHTML = cmdHtml(shown, R.published ? '' : pending);
-    document.getElementById('webCmd').innerHTML = cmdHtml(`${shown} web`, R.published ? '' : pending);
-    document.getElementById('prompt').value = promptText();
-    document.getElementById('promptState').innerHTML = R.published ? '' : `<div class="callout">${esc(T('项目尚未在 npm 发布，下面的 Prompt 里仓库和包名会显示为“尚未发布”。发布后此页面会自动显示实际地址。', 'The project is not on npm yet, so the prompt below says “not published yet” for the repository and package. This page shows the real ones after release.'))}</div>`;
-    const repo = document.getElementById('repoLink');
-    if (R.repository) { repo.href = R.repository; repo.hidden = false; }
-    document.getElementById('footMeta').innerHTML = `v${esc(R.version)}${R.repository ? ` · <a href="${esc(R.repository)}">GitHub</a>` : ''} · MIT · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
+    for (const el of document.querySelectorAll('[data-zh-html]')) el.innerHTML = lang === 'zh' ? el.dataset.zhHtml : el.dataset.enHtml;
+    $('langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
+    $('prompt').textContent = promptText();
+    for (const b of document.querySelectorAll('.seg button')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+    $('asks').innerHTML = ASKS.map((a) => `<span>${esc(T(a[0], a[1]))}</span>`).join('');
+    $('manualCmds').innerHTML = steps.map((c) => `<div class="cmd"><code>${esc(c)}</code><button type="button" data-copy="${esc(c)}">${T('复制', 'Copy')}</button></div>`).join('');
+    $('manualMore').innerHTML = R.published ? '' : `<span class="pill-warn">${T('npm 一行命令发布后可用', 'One-line npm command once published')}</span> ${esc(T('现在需要先装好 Git。更多说明见', 'For now this needs Git. More in the'))} ${repo ? `<a href="${esc(repo)}#readme">README</a>` : 'README'}`;
+    if (repo) { $('repoLink').href = repo; $('repoLink').hidden = false; }
+    $('footMeta').innerHTML = `v${esc(R.version)} · MIT${repo ? ` · <a href="${esc(repo)}">GitHub</a>` : ''} · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
+    restartTyping();
   }
 
-  async function copy(text, btn) {
+  let toastTimer;
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); }
+  async function copy(text, msg) {
     try { await navigator.clipboard.writeText(text); }
     catch { const t = document.createElement('textarea'); t.value = text; document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); }
-    const old = btn.textContent; btn.textContent = T('已复制', 'Copied'); setTimeout(() => { btn.textContent = old; }, 1500);
+    toast(msg || T('已复制', 'Copied'));
   }
+
+  // The composer in the illustration types a few example questions.
+  let typingTimer;
+  function restartTyping() {
+    clearTimeout(typingTimer);
+    const el = $('typed');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = T(ASKS[1][0], ASKS[1][1]); return; }
+    const list = [1, 3, 6].map((i) => T(ASKS[i][0], ASKS[i][1]));
+    let i = 0; let n = 0; let back = false;
+    const tick = () => {
+      const s = list[i];
+      if (!back) {
+        n++;
+        if (n >= s.length) { back = true; el.textContent = s; typingTimer = setTimeout(tick, 1800); return; }
+      } else {
+        n -= 2;
+        if (n <= 0) { back = false; n = 0; i = (i + 1) % list.length; }
+      }
+      el.textContent = s.slice(0, Math.max(0, n));
+      typingTimer = setTimeout(tick, back ? 18 : 70);
+    };
+    tick();
+  }
+
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-copy]');
-    if (b) copy(b.dataset.copy, b);
+    if (b) copy(b.dataset.copy);
+    const m = e.target.closest('.seg button');
+    if (m) { mode = m.dataset.mode; render(); }
+    const g = e.target.closest('[data-goto]');
+    if (g) { mode = g.dataset.goto; render(); }
   });
-  document.getElementById('copyPrompt').addEventListener('click', (e) => copy(promptText(), e.currentTarget));
-  document.getElementById('langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; try { localStorage.setItem('lc-site-lang', lang); } catch { /* ignore */ } render(); });
+  $('copyPrompt').addEventListener('click', () => copy(promptText(), T('已复制，粘贴给 AI 就行', 'Copied. Paste it to your AI')));
+  $('langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; try { localStorage.setItem('lc-site-lang', lang); } catch { /* ignore */ } render(); });
+  addEventListener('scroll', () => $('top').classList.toggle('scrolled', scrollY > 8), { passive: true });
   render();
 })();
 </script>
