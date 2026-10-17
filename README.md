@@ -9,7 +9,7 @@
 
 - Node.js 22 或更新版本（已在 22 和 24 上测试）
 - Google Chrome 或 Microsoft Edge（用于学校登录窗口）
-- macOS 已测试；Windows 按设计支持但尚未在真机上验证；Linux 尽量兼容、未完整测试（见“测试记录”）
+- macOS 已手动测试；Windows 和 Linux 通过 GitHub Actions 上的自动测试，尚未手动操作验证（见“测试记录”）
 
 ## 启动
 
@@ -135,7 +135,8 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 - `npm run check:pack`：打包真实 tarball，装到空的临时目录，脱离源码目录运行 CLI、MCP 和本地网页。
 - 本地网页的完整操作（登录引导、确认目录、选课、预览、下载、补新文件、取消、中英切换）在 macOS 上用 Chromium 内核浏览器手动走过一遍。
 - 已测试：macOS（Apple Silicon）+ Node 22.23 / 24.14 + Google Chrome。
-- **未测试**：Windows 和 Linux 真机；真实的利物浦大学 Canvas 账号（需要账号持有人在本机自己登录后，运行 `node scripts/verify-live.mjs` 做只读检查）。
+- GitHub Actions：macOS / Windows / Ubuntu × Node 22 / 24 全部测试通过，tarball 安装检查通过。
+- **未测试**：在 Windows 和 Linux 上手动操作本地网页和登录窗口；真实的利物浦大学 Canvas 账号（需要账号持有人在本机自己登录后，运行 `node scripts/verify-live.mjs` 做只读检查）。
 
 ## 开发
 
