@@ -46,5 +46,12 @@
     "playwright-core": "^1.63.0",
     "unpdf": "^1.8.1",
     "zod": "^4.6.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shanyuzhang/liverpool-canvas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shanyuzhang/liverpool-canvas/issues"
   }
 }

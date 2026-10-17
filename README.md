@@ -15,7 +15,13 @@
 
 > **npm 包尚未发布。** 发布后的入口会是 `npx -y @<scope>/liverpool-canvas@latest`（scope 待定，见 [RELEASE.md](RELEASE.md)）。在那之前，请用下面经过验证的本地方式。
 
-在项目目录里（获取源码后）：
+```bash
+git clone https://github.com/shanyuzhang/liverpool-canvas.git
+```
+
+```bash
+cd liverpool-canvas
+```
 
 ```bash
 npm install
@@ -145,4 +151,4 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 
 Liverpool Canvas connects University of Liverpool Canvas to your own AI assistant using your normal university sign-in (no access token), and keeps a local copy of course files that only ever fetches what you do not have yet. It is an unofficial, read-only student tool.
 
-Requirements: Node.js 22+, Chrome or Edge. The npm package is **not published yet**; from a source checkout run `npm install`, then `node bin/cli.js setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `node bin/cli.js web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
+Requirements: Node.js 22+, Chrome or Edge. The npm package is **not published yet**; run `git clone https://github.com/shanyuzhang/liverpool-canvas.git`, `cd liverpool-canvas`, `npm install`, then `node bin/cli.js setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `node bin/cli.js web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
