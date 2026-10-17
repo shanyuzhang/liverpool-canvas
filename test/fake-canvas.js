@@ -104,6 +104,20 @@ export async function startFakeCanvas(model = defaultModel()) {
       if (fault.delayMs) await new Promise((r) => setTimeout(r, fault.delayMs));
       if (fault.status) return json(res, fault.status, fault.body || { errors: [{ message: `fault ${fault.status}` }] }, fault.status === 429 ? { 'Retry-After': '0' } : {});
     }
+    // A stand-in for the university sign-in, so the real browser sign-in code can be exercised.
+    if (u.pathname === '/login/saml') {
+      if (model.autoLogin) { res.writeHead(200, { 'Content-Type': 'text/html' }); return res.end('<!doctype html><meta http-equiv="refresh" content="0;url=/login/demo-complete"><p>Signing in…</p>'); }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      return res.end('<!doctype html><title>Demo sign-in</title><h1>Demo university sign-in (fictional)</h1><p>No password needed in this demo.</p><a id="go" href="/login/demo-complete">Sign in</a>');
+    }
+    if (u.pathname === '/login/demo-complete') {
+      res.writeHead(302, { Location: '/', 'Set-Cookie': `${model.cookie}; Path=/; HttpOnly` });
+      return res.end();
+    }
+    if (u.pathname === '/' && req.headers.cookie === model.cookie) {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      return res.end('<!doctype html><title>Dashboard</title><h1>Dashboard (fictional)</h1>');
+    }
     if (req.headers.cookie !== model.cookie) {
       if (u.pathname.startsWith('/api/')) return json(res, 401, { errors: [{ message: 'Invalid access token.' }] });
       res.writeHead(302, { Location: '/login/saml' }); return res.end();

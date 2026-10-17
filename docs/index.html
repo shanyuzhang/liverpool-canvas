@@ -1,328 +1,320 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>canvas-session-mcp</title>
-<meta name="description" content="Connect Claude, Cursor and Codex to Canvas LMS with your normal login — no access token needed. Read-only, local, open source.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Liverpool Canvas</title>
+<meta name="description" content="把利物浦大学 Canvas 接到你的 AI 助手：用学校正常登录，无需个人 Access Token；查询课程、截止任务、公告，读取和下载课件，以后只补新文件。学生维护的非官方开源工具。">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <style>
 :root {
-  --bg: #fbfaf8; --surface: #ffffff; --text: #1d1c1a; --muted: #67645e; --line: #e6e2db;
-  --accent: #c2410c; --accent-soft: #fff1e8; --code-bg: #f4f1ec; --ok: #15803d;
+  --bg: #f6f7f6; --surface: #fff; --text: #17201e; --muted: #5d6967; --line: #dfe5e3;
+  --accent: #0f766e; --accent-ink: #fff; --accent-soft: #e6f4f1; --code: #eef2f1; --warn: #9a5b00; --warn-soft: #fff6e5;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #141312; --surface: #1c1b19; --text: #ece9e4; --muted: #a29e96; --line: #2f2d2a;
-    --accent: #fb923c; --accent-soft: #2a1d14; --code-bg: #23211f; --ok: #4ade80;
+    --bg: #101514; --surface: #181f1e; --text: #e7eeec; --muted: #9ba9a6; --line: #2a3432;
+    --accent: #2dd4bf; --accent-ink: #082320; --accent-soft: #13302b; --code: #1f2927; --warn: #fbbf24; --warn-soft: #2c2410;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #141312; --surface: #1c1b19; --text: #ece9e4; --muted: #a29e96; --line: #2f2d2a;
-  --accent: #fb923c; --accent-soft: #2a1d14; --code-bg: #23211f; --ok: #4ade80;
+  --bg: #101514; --surface: #181f1e; --text: #e7eeec; --muted: #9ba9a6; --line: #2a3432;
+  --accent: #2dd4bf; --accent-ink: #082320; --accent-soft: #13302b; --code: #1f2927; --warn: #fbbf24; --warn-soft: #2c2410;
 }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
 a { color: var(--accent); }
-.wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
-.brand { font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
-.logo { width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 15px; }
-.actions { display: flex; gap: 8px; }
-button.pill, a.pill { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 6px 12px; border-radius: 999px; cursor: pointer; text-decoration: none; }
-.hero { padding: 48px 0 28px; }
-.hero h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.12; letter-spacing: -0.025em; margin: 0 0 16px; }
-.hero h1 em { font-style: normal; color: var(--accent); }
-.hero p.lead { font-size: 18px; color: var(--muted); max-width: 640px; margin: 0 0 24px; }
-.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
-.badge { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: inherit; text-decoration: none; }
+.top-links { display: flex; gap: 8px; align-items: center; }
+.pill { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 5px 12px; border-radius: 999px; cursor: pointer; text-decoration: none; }
+.hero { padding-top: 40px; padding-bottom: 24px; }
+.hero h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 14px; }
+.hero .lead { font-size: 18px; color: var(--muted); max-width: 680px; margin: 0 0 22px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 26px; padding: 0; list-style: none; }
+.chips li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .cta { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 15px; }
-.btn.primary { background: var(--accent); color: #fff; }
-.btn.ghost { border: 1px solid var(--line); color: var(--text); background: var(--surface); }
+.btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-weight: 600; font-size: 15px; padding: 11px 18px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: var(--surface); border-color: var(--line); color: var(--text); }
 section { padding: 28px 0; border-top: 1px solid var(--line); }
-section h2 { font-size: 22px; letter-spacing: -0.01em; margin: 0 0 14px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+section h2 { font-size: 26px; letter-spacing: -0.01em; margin: 0 0 8px; }
+section > .wrap > p.sub { color: var(--muted); margin: 0 0 20px; max-width: 720px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.step h3 { margin: 0 0 6px; font-size: 17px; }
+.step h3::before { counter-increment: step; content: counter(step); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 14px; margin-right: 8px; }
+.step p { margin: 0; color: var(--muted); font-size: 15px; }
+.shot { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); display: block; margin-top: 14px; background: var(--surface); }
+.cmd { display: flex; align-items: stretch; gap: 0; margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--code); }
+.cmd code { flex: 1; padding: 10px 12px; font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-x: auto; white-space: pre; }
+.cmd button { border: 0; border-left: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 14px; padding: 0 14px; cursor: pointer; white-space: nowrap; }
+.note { font-size: 14px; color: var(--muted); }
+.badge-warn { display: inline-block; font-size: 12px; font-weight: 700; color: var(--warn); background: var(--warn-soft); border-radius: 6px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+.callout { background: var(--warn-soft); color: var(--text); border-radius: 12px; padding: 12px 14px; font-size: 15px; margin: 12px 0; }
+.caps { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 15px; }
+.caps th, .caps td { text-align: left; padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+.caps th { background: var(--accent-soft); border-top: 0; font-size: 14px; }
+.caps td:last-child { color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-.card h3 { margin: 0 0 6px; font-size: 16px; }
-.card p { margin: 0; color: var(--muted); font-size: 15px; }
-.step { display: grid; grid-template-columns: 32px 1fr; gap: 12px; margin-bottom: 20px; }
-.num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; display: grid; place-items: center; font-size: 14px; }
-.step > div { min-width: 0; }
-.step h3 { margin: 2px 0 6px; font-size: 16px; }
-.step p { margin: 0 0 8px; color: var(--muted); }
-pre { position: relative; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px 64px 14px 16px; overflow-x: auto; margin: 8px 0 0; }
-code { font: 13.5px/1.55 "JetBrains Mono", ui-monospace, Consolas, monospace; }
-p code, td code, li code { background: var(--code-bg); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
-.copy { position: absolute; top: 8px; right: 8px; font: 12px Inter, sans-serif; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 6px; padding: 3px 8px; cursor: pointer; }
-.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.tabs button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); padding: 5px 12px; border-radius: 8px; cursor: pointer; }
-.tabs button[aria-selected="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
-.panel[hidden] { display: none; }
-.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; }
-.msg { max-width: 88%; padding: 10px 14px; border-radius: 12px; font-size: 15px; }
-.msg.me { justify-self: end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-.msg.ai { background: var(--code-bg); border-bottom-left-radius: 4px; }
-.msg.ai .tool { font: 12px "JetBrains Mono", monospace; color: var(--muted); display: block; margin-bottom: 4px; }
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 15px; }
-th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted); font-weight: 500; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
-td:first-child { white-space: nowrap; }
-.note { background: var(--accent-soft); border-radius: 12px; padding: 14px 16px; color: var(--text); font-size: 15px; }
-.hero-cmd-label { margin: 22px 0 0; color: var(--muted); font-size: 14px; }
-details { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; background: var(--surface); }
-summary { cursor: pointer; font-weight: 500; }
-.stat { font-size: 30px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 6px; }
-td.num-cell { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; text-align: right; }
-footer { padding: 28px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
-[data-lang="zh"] .en, [data-lang="en"] .zh { display: none !important; }
-@media (max-width: 560px) { .hero { padding-top: 28px; } .msg { max-width: 100%; } }
+.card h3 { margin: 0 0 8px; font-size: 17px; }
+.tree { font: 13px/1.6 ui-monospace, Menlo, Consolas, monospace; background: var(--code); border-radius: 10px; padding: 12px 14px; white-space: pre; overflow-x: auto; margin: 10px 0 0; }
+textarea.prompt { width: 100%; min-height: 250px; font: 14px/1.55 ui-monospace, Menlo, Consolas, monospace; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--code); color: var(--text); resize: vertical; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin: 8px 0; }
+summary { font-weight: 600; cursor: pointer; }
+details p { margin: 8px 0 0; color: var(--muted); }
+footer { padding: 28px 0 40px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+@media (max-width: 760px) {
+  .steps, .two { grid-template-columns: 1fr; }
+  .caps th:last-child, .caps td:last-child { display: none; }
+  .hero { padding-top: 20px; }
+}
 </style>
 </head>
-<body data-lang="en">
+<body>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><span class="logo" aria-hidden="true">C</span>canvas-session-mcp</div>
-    <div class="actions">
-      <button class="pill" id="lang" type="button">中文</button>
-      <button class="pill" id="theme" type="button" aria-label="Toggle theme">◐</button>
-      <a class="pill" href="https://github.com/CorCvusRamboChen/canvas-session-mcp">GitHub</a>
+    <a class="brand" href="#"><img src="assets/icon.svg" alt="" width="28" height="28"> Liverpool Canvas</a>
+    <div class="top-links">
+      <a class="pill" id="repoLink" href="#" hidden>GitHub</a>
+      <button class="pill" id="langBtn" type="button">English</button>
     </div>
   </header>
-
-  <div class="hero">
-    <h1 class="en">Let your AI read Canvas.<br><em>No access token.</em></h1>
-    <h1 class="zh">让 AI 直接读你的 Canvas，<br><em>不用 Access Token。</em></h1>
-    <p class="lead en">An MCP server for Claude, Cursor, Codex and other assistants. Sign in once with your school's normal login, then ask about deadlines, lecture slides, assignments and grades.</p>
-    <p class="lead zh">给 Claude、Cursor、Codex 等 AI 用的 MCP 服务器。用学校的正常登录方式登录一次，之后就能直接问 AI 截止日期、讲义、作业要求和成绩。</p>
-    <div class="badges">
-      <span class="badge en">No token needed</span><span class="badge zh">不需要 token</span>
-      <span class="badge en">Read-only</span><span class="badge zh">只读</span>
-      <span class="badge en">Runs on your computer</span><span class="badge zh">数据留在本机</span>
-      <span class="badge">MIT</span>
-    </div>
-    <div class="cta">
-      <a class="btn primary" href="#start"><span class="en">Get started</span><span class="zh">开始使用</span></a>
-      <a class="btn ghost" href="https://github.com/CorCvusRamboChen/canvas-session-mcp"><span class="en">View source</span><span class="zh">查看源码</span></a>
-    </div>
-    <p class="en hero-cmd-label">One command sets everything up:</p><p class="zh hero-cmd-label">一条命令装好所有东西：</p>
-    <pre><code>npx -y https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz setup</code></pre>
-  </div>
-
-  <section>
-    <h2 class="en">Why</h2><h2 class="zh">为什么做这个</h2>
-    <div class="grid">
-      <div class="card">
-        <h3 class="en">Tokens are often switched off</h3><h3 class="zh">很多学校关掉了 token</h3>
-        <p class="en">Most Canvas integrations need a personal access token. Many universities no longer let students create one.</p>
-        <p class="zh">现有的 Canvas 工具基本都要个人 Access Token，但很多大学已经不让学生自己生成了。</p>
-      </div>
-      <div class="card">
-        <h3 class="en">Your login already works</h3><h3 class="zh">你的登录本来就能用</h3>
-        <p class="en">The Canvas website calls its own API with your session. This tool does the same, from a browser profile on your computer.</p>
-        <p class="zh">Canvas 网页版本身就是用你的登录会话调 API 的，这个工具也这么做，登录态保存在你电脑上的浏览器 profile 里。</p>
-      </div>
-      <div class="card">
-        <h3 class="en">Safe by design</h3><h3 class="zh">设计上就是安全的</h3>
-        <p class="en">Only GET requests: it cannot submit, post or change anything. Nothing leaves your machine except requests to your school's Canvas.</p>
-        <p class="zh">只发 GET 请求，不会提交、发帖或修改任何东西；除了访问学校的 Canvas，不会把数据发到任何地方。</p>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <h2 class="en">What it looks like</h2><h2 class="zh">用起来是这样</h2>
-    <div class="chat">
-      <div class="msg me en">Give me the Assignment 3 questions for Linear Algebra.</div>
-      <div class="msg me zh">把线性代数 Assignment 3 的题目给我。</div>
-      <div class="msg ai"><span class="tool">canvas_list_files(course_id: MATH1012) → canvas_read_file(file_id: 1234567)</span>
-        <span class="en">The Files tab is hidden in this course, and the sheet was uploaded as <b>“Assing3-26.pdf”</b> (sic), attached to the 11 Sep announcement. It has 3 questions (9 parts): subspaces, linear dependence and column space, and the matrix of a linear transformation. Due 20 Sep, worth 3.75%. Want them one by one?</span>
-        <span class="zh">这门课的 Files 页面是隐藏的，题目文件被上传成了 <b>“Assing3-26.pdf”</b>（文件名拼错了），挂在 9 月 11 日那条公告的附件里。一共 3 题 9 小问：子空间、线性相关与列空间、线性变换的矩阵。9 月 20 日截止，占 3.75%。要一题一题看吗？</span>
-      </div>
-      <div class="msg me en">What else is due this week? Have I submitted?</div>
-      <div class="msg me zh">这周还有什么要交？我交了没？</div>
-      <div class="msg ai"><span class="tool">canvas_upcoming(days: 7)</span>
-        <span class="en"><b>Assignment 4</b> — Sunday 11:59pm, <b>not submitted</b>. <b>Week 9 quiz</b> — Monday, not submitted. <b>Assessed quiz</b> — Wednesday. Want me to save all of this course's files to your Canvas folder?</span>
-        <span class="zh"><b>Assignment 4</b>：周日 23:59，<b>还没交</b>。<b>Week 9 quiz</b>：周一，还没交。<b>计分测验</b>：周三。要不要把这门课的文件都存到你的 Canvas 文件夹？</span>
-      </div>
-    </div>
-    <p class="en" style="color:var(--muted);font-size:14px">Based on a real conversation; course codes and IDs changed.</p>
-    <p class="zh" style="color:var(--muted);font-size:14px">根据一次真实对话整理，课程代码和 id 已替换。</p>
-  </section>
-
-  <section>
-    <h2 class="en">Real requests from one semester</h2><h2 class="zh">一个学期里真实问过的</h2>
-    <div class="grid">
-      <div class="card"><h3 class="en">“Download everything for this course”</h3><h3 class="zh">“把这门课的文件全部下载下来”</h3>
-        <p class="en">12 files found across modules, announcements and assignment pages; 8 unique PDFs saved into <code>Canvas/MATH1012/…</code>, questions and solutions. Byte-identical re-uploads were kept once. Running it again took 2 s.</p>
-        <p class="zh">从模块、公告、作业页面里找到 12 个文件，存下 8 份不重复的 PDF 到 <code>Canvas/MATH1012/…</code>，题目和答案都有。字节完全相同的重复上传只存一份，再跑一次只要 2 秒。</p></div>
-      <div class="card"><h3 class="en">“I had an extension — what's still outstanding?”</h3><h3 class="zh">“延期之后，我还有哪些没交？”</h3>
-        <p class="en">Overdue and missing work next to what's coming up, from every course at once.</p>
-        <p class="zh">所有课程里逾期没交的和接下来要交的，一次看全。</p></div>
-      <div class="card"><h3 class="en">“Every marking criterion for my lab report”</h3><h3 class="zh">“lab report 的所有评分要求”</h3>
-        <p class="en">Instructions, the rubric and the linked brief and sample-essay PDFs, read together and turned into one checklist.</p>
-        <p class="zh">作业说明、评分标准，以及链接的 brief 和 sample essay PDF 一起读完，整理成一张清单。</p></div>
-      <div class="card"><h3 class="en">“Check my SQL against the spec”</h3><h3 class="zh">“对照要求检查我的 SQL”</h3>
-        <p class="en">The assignment PDF is read as text, so column order, banned keywords and formatting rules can be checked line by line.</p>
-        <p class="zh">作业说明 PDF 转成文字，列的顺序、禁止使用的语法、格式规范都能逐条检查。</p></div>
-    </div>
-  </section>
-
-  <section id="start">
-    <h2 class="en">Get started</h2><h2 class="zh">开始使用</h2>
-    <p class="en" style="color:var(--muted);margin-top:0">You need <a href="https://nodejs.org">Node.js 20+</a> and Chrome or Edge.</p>
-    <p class="zh" style="color:var(--muted);margin-top:0">需要 <a href="https://nodejs.org">Node.js 20+</a>，以及 Chrome 或 Edge。</p>
-
-    <div class="step"><span class="num">1</span><div>
-      <h3 class="en">Run setup</h3><h3 class="zh">运行 setup</h3>
-      <pre><code>npx -y https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz setup</code></pre>
-    </div></div>
-
-    <div class="step"><span class="num">2</span><div>
-      <h3 class="en">Answer three questions</h3><h3 class="zh">回答三个问题</h3>
-      <p class="en"><b>Canvas address</b> (e.g. <code>https://canvas.lms.unimelb.edu.au</code>) · <b>where to save course files</b> (default <code>Documents/Canvas</code>, any folder works) · <b>sign in</b> in the window that opens. SSO and MFA work as usual; the window closes by itself.</p>
-      <p class="zh"><b>Canvas 地址</b>（如 <code>https://canvas.lms.unimelb.edu.au</code>）· <b>课件存到哪里</b>（默认 <code>文档/Canvas</code>，可以换成任何文件夹）· 在弹出的窗口里<b>登录</b>。SSO、MFA 照常，登录完窗口自动关闭。</p>
-    </div></div>
-
-    <div class="step"><span class="num">3</span><div>
-      <h3 class="en">Your AI apps are connected</h3><h3 class="zh">自动接入你的 AI</h3>
-      <p class="en">Setup finds <b>Claude Desktop, Claude Code, Cursor, Windsurf and Codex</b> and asks before connecting each one. Existing settings are kept and backed up. Restart the app and ask “What's due this week on Canvas?”</p>
-      <p class="zh">setup 会找到 <b>Claude Desktop、Claude Code、Cursor、Windsurf、Codex</b>，每个都先问你再接入。原有配置会保留并备份。重启应用后问一句：“Canvas 上这周有什么要交？”</p>
-      <details>
-        <summary><span class="en">Manual configuration</span><span class="zh">手动配置</span></summary>
-        <div class="tabs" role="tablist">
-          <button role="tab" aria-selected="true" data-tab="claude-code">Claude Code</button>
-          <button role="tab" aria-selected="false" data-tab="json">Claude Desktop / Cursor / Windsurf</button>
-          <button role="tab" aria-selected="false" data-tab="codex">Codex</button>
-        </div>
-        <div class="panel" data-panel="claude-code"><pre><code>claude mcp add canvas -- npx -y https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz</code></pre></div>
-        <div class="panel" data-panel="json" hidden><pre><code>{
-  "mcpServers": {
-    "canvas": {
-      "command": "npx",
-      "args": ["-y", "https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz"]
-    }
-  }
-}</code></pre>
-          <p class="en" style="margin:6px 0 0;font-size:14px;color:var(--muted)">On Windows: <code>"command": "cmd"</code>, <code>"args": ["/c", "npx", "-y", "…"]</code>. Run <code>… login --url https://your-canvas</code> once first.</p>
-          <p class="zh" style="margin:6px 0 0;font-size:14px;color:var(--muted)">Windows 上改成 <code>"command": "cmd"</code>、<code>"args": ["/c", "npx", "-y", "…"]</code>。先运行一次 <code>… login --url https://你的canvas</code>。</p></div>
-        <div class="panel" data-panel="codex" hidden><pre><code>[mcp_servers.canvas]
-command = "npx"
-args = ["-y", "https://github.com/CorCvusRamboChen/canvas-session-mcp/archive/refs/heads/main.tar.gz"]</code></pre></div>
-      </details>
-    </div></div>
-  </section>
-
-  <section>
-    <h2 class="en">Staying signed in — measured</h2><h2 class="zh">持续登录（实测）</h2>
-    <p class="en" style="color:var(--muted);margin-top:0">On a real university Canvas with Okta SSO behind a Cloudflare bot check.</p>
-    <p class="zh" style="color:var(--muted);margin-top:0">在一所大学的真实 Canvas 上测得（Okta SSO，前面有 Cloudflare 人机验证）。</p>
-    <div class="table-wrap"><table>
-      <tbody>
-        <tr><td><b class="en">Normal use</b><b class="zh">平时使用</b></td><td><span class="en">Saved cookies go straight to Canvas, no browser</span><span class="zh">直接带保存的 cookie 访问，不开浏览器</span></td><td class="num-cell">0.7 s</td></tr>
-        <tr><td><b class="en">Cookie lifetime</b><b class="zh">cookie 能用多久</b></td><td><span class="en">Checked every 15 min with no renewal: still accepted after 2 h 6 min (longer idle gaps not measured yet)</span><span class="zh">每 15 分钟检查一次、全程不续期，2 小时 6 分钟后仍然有效（长时间完全闲置还没测）</span></td><td class="num-cell">≥ 2 h</td></tr>
-        <tr><td><b class="en">Canvas session expired</b><b class="zh">Canvas 会话过期</b></td><td><span class="en">A sign-in window opens at your SSO, finishes without typing, and closes</span><span class="zh">弹出窗口去学校 SSO，什么都不用输就自动完成并关闭</span></td><td class="num-cell">4–10 s</td></tr>
-        <tr><td><b class="en">SSO expired too</b><b class="zh">SSO 也过期</b></td><td><span class="en">The window waits for you to sign in, as any browser would</span><span class="zh">窗口留着等你登录，和平时用浏览器一样</span></td><td class="num-cell">—</td></tr>
-      </tbody>
-    </table></div>
-    <p class="en" style="font-size:14px;color:var(--muted)">Bot checks are never automated or bypassed. Where one blocks a hidden renewal, a visible window is used instead. Set <code>CANVAS_MCP_RENEW=hidden</code> if you never want a pop-up.</p>
-    <p class="zh" style="font-size:14px;color:var(--muted)">本工具从不自动完成或绕过任何人机验证。如果后台续期被人机验证拦下，就改用可见窗口。完全不想要弹窗的话，设置 <code>CANVAS_MCP_RENEW=hidden</code>。</p>
-  </section>
-
-  <section>
-    <h2 class="en">How it was verified</h2><h2 class="zh">怎么验证的</h2>
-    <div class="grid">
-      <div class="card"><div class="stat">18</div><p class="en">automated tests against a fake Canvas and a real MCP client, including a check that only GET requests are ever sent</p><p class="zh">个自动测试：假的 Canvas 服务器加真实的 MCP 客户端，其中一项专门确认只会发 GET 请求</p></div>
-      <div class="card"><div class="stat">60/60</div><p class="en">live checks on a real account across 13 courses: modules, files, assignments, pages, announcements, grades, inbox, calendar, PDF to text</p><p class="zh">项真机检查：真实账号、13 门课，覆盖模块、文件、作业、页面、公告、成绩、站内信、日历和 PDF 转文字</p></div>
-      <div class="card"><div class="stat">4</div><p class="en">problems found by live testing and fixed: attachments on announcements, last term counted as current, timetable noise, duplicate uploads</p><p class="zh">个真机测试中发现并修好的问题：公告附件漏抓、上学期的课算成当前、课表事件刷屏、重复上传存两份</p></div>
-    </div>
-  </section>
-
-  <section>
-    <h2 class="en">Tools</h2><h2 class="zh">工具</h2>
-    <div class="table-wrap"><table>
-      <thead><tr><th class="en">Tool</th><th class="zh">工具</th><th class="en">What it does</th><th class="zh">作用</th></tr></thead>
-      <tbody>
-        <tr><td><code>canvas_upcoming</code></td><td><span class="en">Everything due soon across all courses, with submission status</span><span class="zh">所有课近期要交的东西，以及是否已提交</span></td></tr>
-        <tr><td><code>canvas_list_courses</code></td><td><span class="en">Your courses and terms</span><span class="zh">课程列表</span></td></tr>
-        <tr><td><code>canvas_get_assignment</code></td><td><span class="en">Full instructions, rubric, your submission and score</span><span class="zh">作业完整要求、评分标准、提交状态和分数</span></td></tr>
-        <tr><td><code>canvas_read_file</code></td><td><span class="en">Lecture slides, PDFs and Word documents as text</span><span class="zh">讲义、PDF、Word 转成文字</span></td></tr>
-        <tr><td><code>canvas_save_course_files</code></td><td><span class="en">Save a whole course into your folder; unchanged files skipped, duplicates kept once</span><span class="zh">把整门课存到你的文件夹，没变的跳过，重复的只存一份</span></td></tr>
-        <tr><td><code>canvas_list_modules</code></td><td><span class="en">Course structure: modules, pages, files</span><span class="zh">课程模块结构</span></td></tr>
-        <tr><td><code>canvas_list_announcements</code></td><td><span class="en">Recent announcements</span><span class="zh">最近的公告</span></td></tr>
-        <tr><td><code>canvas_grades</code></td><td><span class="en">Grades, scores and teacher comments</span><span class="zh">成绩和老师评语</span></td></tr>
-        <tr><td><code>canvas_get_discussion</code></td><td><span class="en">Discussion threads and replies</span><span class="zh">讨论区帖子和回复</span></td></tr>
-        <tr><td><code>canvas_inbox</code></td><td><span class="en">Canvas Inbox messages</span><span class="zh">Canvas 站内信</span></td></tr>
-        <tr><td><code>canvas_calendar</code></td><td><span class="en">Classes, exams, consultation times</span><span class="zh">课程、考试、答疑时间</span></td></tr>
-        <tr><td><code>canvas_api_get</code></td><td><span class="en">Any other Canvas API endpoint, read-only</span><span class="zh">其他任意 Canvas API（只读）</span></td></tr>
-      </tbody>
-    </table></div>
-    <p class="en" style="color:var(--muted);font-size:14px">Plus <code>canvas_list_assignments</code>, <code>canvas_get_page</code>, <code>canvas_list_files</code>, <code>canvas_list_discussions</code> and <code>canvas_whoami</code>.</p>
-    <p class="zh" style="color:var(--muted);font-size:14px">另外还有 <code>canvas_list_assignments</code>、<code>canvas_get_page</code>、<code>canvas_list_files</code>、<code>canvas_list_discussions</code>、<code>canvas_whoami</code>。</p>
-  </section>
-
-  <section>
-    <h2 class="en">How it works</h2><h2 class="zh">原理</h2>
-    <div class="grid">
-      <div class="card"><h3>1 · login</h3>
-        <p class="en">Opens Chrome/Edge with its own profile and waits until Canvas recognises you. Remembers your SSO entry point.</p>
-        <p class="zh">用专用 profile 打开 Chrome/Edge，等 Canvas 认出你，并记下你学校的 SSO 入口。</p></div>
-      <div class="card"><h3>2 · refresh</h3>
-        <p class="en">Session cookies are kept locally. If Canvas ever rejects them, a browser renews the session through your SSO — hidden when possible, otherwise a window that closes itself.</p>
-        <p class="zh">会话 cookie 保存在本机。Canvas 不认了就通过学校 SSO 自动续期：能在后台完成就后台完成，不行就弹一个会自己关闭的窗口。</p></div>
-      <div class="card"><h3>3 · read</h3>
-        <p class="en">Requests go straight to <code>/api/v1</code> with your session cookie, just like the Canvas website does.</p>
-        <p class="zh">带着会话 cookie 直接请求 <code>/api/v1</code>，跟 Canvas 网页版一样。</p></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="note">
-      <span class="en"><b>Please use responsibly.</b> This is an unofficial tool, not affiliated with or endorsed by Instructure. It only reads what you can already see in your browser. Check your institution's IT policy, keep course materials private, and follow your subjects' rules on AI use.</span>
-      <span class="zh"><b>使用须知：</b>本项目是非官方工具，与 Instructure 无关，只读取你在浏览器里本来就能看到的内容。请遵守学校的 IT 政策，不要外传课程资料，并遵守各科关于 AI 使用的规定。</span>
-    </div>
-  </section>
-
-  <footer>
-    MIT License · <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">GitHub</a> ·
-    <span class="en">Canvas is a trademark of Instructure, Inc.</span><span class="zh">Canvas 是 Instructure, Inc. 的商标。</span>
-  </footer>
 </div>
+
+<main>
+<div class="wrap hero">
+  <h1 data-zh="把利物浦 Canvas 接到你的 AI 助手" data-en="Connect Liverpool Canvas to your AI assistant"></h1>
+  <p class="lead" data-zh="用学校的正常登录（SSO + MFA）连接 Canvas，无需个人 Access Token。之后在 Claude、Codex 等助手里查询课程、截止任务、公告、作业要求和成绩，读取和下载课件；以后下载只补本地没有的新文件。" data-en="Sign in to Canvas the usual way (university SSO + MFA), no personal access token. Then ask Claude, Codex and other assistants about your courses, deadlines, announcements, assignment briefs and grades, read and download course files, and later fetch only files you do not have yet."></p>
+  <ul class="chips">
+    <li data-zh="正常学校登录" data-en="Normal university sign-in"></li>
+    <li data-zh="无需 Access Token" data-en="No access token"></li>
+    <li data-zh="对 Canvas 只读" data-en="Read-only on Canvas"></li>
+    <li data-zh="只补新文件" data-en="Only new files"></li>
+    <li data-zh="开源 · MIT" data-en="Open source · MIT"></li>
+  </ul>
+  <div class="cta">
+    <a class="btn primary" href="#ai-setup" data-zh="让 AI 帮我接入" data-en="Let my AI set it up"></a>
+    <a class="btn ghost" href="#download" data-zh="直接下载课件" data-en="Just download course files"></a>
+    <a class="btn ghost" href="#start" data-zh="复制命令自己启动" data-en="Copy a command and run it"></a>
+  </div>
+</div>
+
+<section id="start">
+  <div class="wrap">
+    <h2 data-zh="三步开始" data-en="Three steps"></h2>
+    <p class="sub" data-zh="需要 Node.js 22 或更新版本，以及 Chrome 或 Edge。不需要克隆仓库，也不用手动改配置文件。" data-en="You need Node.js 22 or newer and Chrome or Edge. No cloning, no editing config files by hand."></p>
+    <div class="steps">
+      <div class="step"><h3 data-zh="复制命令或安装 Prompt" data-en="Copy a command or the install prompt"></h3><p data-zh="在终端运行下面的命令；或者把安装 Prompt 交给能操作终端的 AI。" data-en="Run the command below in a terminal, or hand the install prompt to an AI that can use your terminal."></p></div>
+      <div class="step"><h3 data-zh="学校登录" data-en="Sign in"></h3><p data-zh="一个独立的 Chrome/Edge 窗口打开利物浦 Canvas，你自己输入账号、密码和 MFA，完成后窗口自动关闭。" data-en="A separate Chrome/Edge window opens Liverpool Canvas. You type your account, password and MFA yourself; the window closes by itself."></p></div>
+      <div class="step"><h3 data-zh="在 AI 中使用" data-en="Use it in your AI"></h3><p data-zh="选一个 AI 应用接入（会先备份它的配置），重启后直接提问；也可以只用本地网页下载课件。" data-en="Pick one AI app to connect (its settings are backed up first) and ask away after a restart, or just use the local page to download files."></p></div>
+    </div>
+    <div id="cmdBlock"></div>
+    <img class="shot" src="assets/step-1-sign-in.png" alt="" loading="lazy" width="1180" height="820">
+  </div>
+</section>
+
+<section id="capabilities">
+  <div class="wrap">
+    <h2 data-zh="接入后可以这样用" data-en="What you can ask"></h2>
+    <p class="sub" data-zh="工具本身不带模型，也不需要额外的 API key：你在自己的 AI 应用里提问，它通过这个工具读取你有权限看到的 Canvas 内容。" data-en="The tool has no model of its own and needs no extra API key: you ask in your own AI app, which reads the Canvas content you can access through this tool."></p>
+    <table class="caps">
+      <thead><tr><th data-zh="能力" data-en="Capability"></th><th data-zh="可以这样问" data-en="Try asking"></th><th data-zh="说明" data-en="Notes"></th></tr></thead>
+      <tbody id="capRows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2 data-zh="不用 AI，直接下载课件" data-en="Download course files without an AI"></h2>
+    <p class="sub" data-zh="运行 web 命令会在你的电脑上打开一个本地网页（只有本机能访问）：选择课程和保存位置，先预览将下载哪些文件，再一键下载。这个公开介绍页本身无法访问你的电脑或学校账号。" data-en="The web command opens a local page on your computer (reachable only from this computer): choose courses and a folder, preview what will be downloaded, then download. This public page itself cannot reach your computer or your university account."></p>
+    <div id="webCmd"></div>
+    <div class="two">
+      <div>
+        <img class="shot" src="assets/step-3-choose.png" alt="" loading="lazy" width="1180" height="820">
+      </div>
+      <div class="card">
+        <h3 data-zh="文件存在哪里" data-en="Where files go"></h3>
+        <p class="note" data-zh="默认在系统“文稿 / Documents”下的 Canvas 文件夹，可以改。按“课程代码与学期 / 模块或页面 / 文件”整理。" data-en="By default a Canvas folder in your Documents, which you can change. Organised as course code and term / module or page / file."></p>
+        <div class="tree">Documents/Canvas/
+├── MATH253 (2026-27 Semester 1)/
+│   ├── Week 1/
+│   │   ├── Week 1 slides.pdf
+│   │   └── Problem sheet 1.pdf
+│   ├── Announcements/
+│   └── Assignments/
+└── MATH268 (2026-27 Semester 1)/
+    └── Lectures/</div>
+        <p class="note" data-zh="（示例为虚构课程）" data-en="(fictional example)"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="only-new">
+  <div class="wrap">
+    <h2 data-zh="以后只补新文件" data-en="Later, only new files"></h2>
+    <p class="sub" data-zh="下次在 AI 里说“补下新文件”、在本地网页点“补新文件”，或运行 sync 命令，都只会处理你明确选过的课程：" data-en="Next time, ask your AI to fetch new files, click “Fetch new files” on the local page, or run the sync command. Only the courses you chose are checked:"></p>
+    <div class="two">
+      <div class="card"><ul>
+        <li data-zh="已下载且本地还在的文件：直接跳过，不重新下载、不覆盖、不移动。" data-en="Files you have: skipped. Not downloaded again, replaced or moved."></li>
+        <li data-zh="老师在 Canvas 上更新了同一个文件：提示你，但保留你本地的版本。" data-en="A teacher updated a file on Canvas: you are told, and your copy is kept."></li>
+        <li data-zh="同名的新上传：另存为“文件名 (canvas-编号)”，两份都保留。" data-en="A new upload with the same name: saved as “name (canvas-ID)”; both are kept."></li>
+        <li data-zh="你删掉了本地文件：下次会补回来。" data-en="You deleted a local copy: it comes back next time."></li>
+        <li data-zh="Canvas 上删除了文件：你本地的副本不会被删。" data-en="A file removed from Canvas: your local copy stays."></li>
+      </ul></div>
+      <div class="card"><ul>
+        <li data-zh="文件不只从 Files 页找：模块、模块里的网页、网页互相链接的页面、课程首页、公告附件和作业描述都会扫描；Files 或 Pages 列表被隐藏也能找到。" data-en="Files are not only taken from the Files tab: modules, pages in modules, pages they link to, the home page, announcement attachments and assignment descriptions are scanned, even when Files or Pages are hidden."></li>
+        <li data-zh="同一文件出现在多处只下载一次；没权限或锁定的条目会注明原因；扫描不完整会明确告诉你，不会假装“全部完成”。" data-en="A file found in several places is downloaded once; locked items are listed with a reason; an incomplete scan is reported as such, never as “all done”."></li>
+        <li data-zh="不会后台定时运行，只在你点击或运行时检查。" data-en="Nothing runs in the background; it only checks when you ask."></li>
+      </ul></div>
+    </div>
+    <img class="shot" src="assets/step-4-done.png" alt="" loading="lazy" width="1180" height="820">
+  </div>
+</section>
+
+<section id="ai-setup">
+  <div class="wrap">
+    <h2 data-zh="交给 AI 帮我接入" data-en="Let your AI set it up"></h2>
+    <p class="sub" data-zh="适用于能在你电脑上运行命令的 AI，例如 Claude Code、Codex 或 Claude Desktop 的代码功能。复制下面这段话发给它。普通网页聊天不能在你的电脑上安装程序，这种情况请看下面的手动方式。" data-en="For an AI that can run commands on your computer, such as Claude Code, Codex or Claude Desktop with coding tools. Copy this and send it. A plain web chat cannot install anything on your computer; use the manual steps below instead."></p>
+    <div id="promptState"></div>
+    <textarea class="prompt" id="prompt" readonly></textarea>
+    <p><button class="btn primary" type="button" id="copyPrompt" data-zh="复制安装 Prompt" data-en="Copy the install prompt"></button></p>
+    <div class="card">
+      <h3 data-zh="没有能操作终端的 AI？手动运行" data-en="No AI with terminal access? Do it yourself"></h3>
+      <ol>
+        <li data-zh="安装 Node.js（LTS 版）和 Chrome 或 Edge。" data-en="Install Node.js (LTS) and Chrome or Edge."></li>
+        <li data-zh="打开终端：macOS 用“终端”，Windows 用“PowerShell”或“终端”。" data-en="Open a terminal: Terminal on macOS, PowerShell or Terminal on Windows."></li>
+        <li data-zh="运行上面“三步开始”里的命令，按提示确认保存位置、登录、选择要接入的 AI 应用（也可以跳过）。" data-en="Run the command from “Three steps”, then follow the prompts: confirm the folder, sign in, pick an AI app (or skip)."></li>
+        <li data-zh="完全退出并重新打开你的 AI 应用，然后问：“列出我的课程和近期作业截止”。" data-en="Quit and reopen your AI app, then ask: “List my courses and upcoming deadlines”."></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="system">
+  <div class="wrap">
+    <h2 data-zh="macOS 与 Windows 提示" data-en="macOS and Windows notes"></h2>
+    <div class="two">
+      <div class="card">
+        <h3 data-zh="检查运行环境" data-en="Check your setup"></h3>
+        <p class="note" data-zh="在终端运行，应显示 v22 或更高：" data-en="Run this in a terminal; it should print v22 or higher:"></p>
+        <div class="cmd"><code>node -v</code><button type="button" data-copy="node -v" data-zh="复制" data-en="Copy"></button></div>
+        <p class="note" data-zh="还需要已安装 Google Chrome 或 Microsoft Edge（Windows 自带 Edge）。登录窗口用的是独立的浏览器资料，不影响你平时的浏览器。" data-en="Google Chrome or Microsoft Edge must be installed (Windows includes Edge). The sign-in window uses a separate browser profile and leaves your everyday browser alone."></p>
+      </div>
+      <div class="card">
+        <h3>macOS</h3>
+        <p class="note" data-zh="在“应用程序 → 实用工具 → 终端”里运行命令。第一次接入 Claude Desktop 后，需要从菜单完全退出（⌘Q）再打开。" data-en="Run commands in Applications → Utilities → Terminal. After connecting Claude Desktop the first time, quit it fully (⌘Q) and reopen it."></p>
+        <h3>Windows</h3>
+        <p class="note" data-zh="在“开始”菜单搜索 PowerShell 打开。如果 npx 提示脚本被禁止运行，可以改用“命令提示符（cmd）”运行同一条命令。接入 Claude Desktop 后，在任务栏托盘里右键退出，再重新打开。" data-en="Open PowerShell from the Start menu. If npx says scripts are disabled, run the same command in Command Prompt (cmd). After connecting Claude Desktop, quit it from the tray icon and reopen it."></p>
+        <p class="note" data-zh="Linux 尽量兼容，但尚未经过完整测试。" data-en="Linux should work but has not been fully tested."></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <details><summary data-zh="登录窗口是什么？为什么没有我平时的 Google 登录？" data-en="What is the sign-in window? Why am I not signed in to Google there?"></summary><p data-zh="它是一个用独立资料启动的 Chrome/Edge 窗口，只用于登录利物浦 Canvas，不会读取你日常浏览器的登录状态。账号、密码和 MFA 都由你在窗口里自己输入，不要发到任何聊天中。登录完成后窗口自动关闭。" data-en="It is Chrome/Edge started with a separate profile, only for signing in to Liverpool Canvas; it does not use your everyday browser’s sign-ins. You type your account, password and MFA there yourself, never into a chat. It closes once you are in."></p></details>
+    <details><summary data-zh="会话过期了怎么办？" data-en="My session expired. Now what?"></summary><p data-zh="AI 会提示你重新登录；如果学校的单点登录还记得你，窗口会自动完成。也可以运行 login 命令，或在本地网页点“打开登录窗口”。遇到人机验证或安全拦截时，请在窗口里自己完成，工具不会尝试绕过。" data-en="Your AI will say so and a sign-in window opens; if the university SSO still remembers you it completes by itself. You can also run the login command or click “Open the sign-in window” on the local page. Security checks are always left to you; the tool never tries to get around them."></p></details>
+    <details><summary data-zh="找不到某门课？" data-en="A course is missing?"></summary><p data-zh="课程列表默认按学期分组，本学期在最前；往届课程在本地网页里也会显示，命令行加 --include-past。同一课程代码有多个学期时，会让你选择，不会自己猜。" data-en="Courses are grouped by term with this term first; past courses also show on the local page, and on the command line with --include-past. When a code matches courses in several terms you are asked which one; it never guesses."></p></details>
+    <details><summary data-zh="为什么有些文件显示“无权限”或“已锁定”？" data-en="Why are some files “no access” or “locked”?"></summary><p data-zh="老师可能还没发布、设置了开放时间或限制了访问。工具只能读取你在网页上本来就能打开的内容，这些条目会被跳过并注明原因，之后开放了再补就行。" data-en="The teacher may not have published them yet, set an availability date or restricted access. The tool only reads what you can already open in your browser; these items are skipped with a reason and can be fetched later."></p></details>
+    <details><summary data-zh="为什么旧文件被“跳过”？" data-en="Why were old files “skipped”?"></summary><p data-zh="因为你已经有了。工具记录每个文件来自哪门课、哪个 Canvas 文件编号、存在哪里；本地文件还在就不会再下载或覆盖。如果老师改过文件，会提示你，但保留你本地的版本。" data-en="Because you already have them. The tool records which course and Canvas file each file came from and where it went; while your copy is there it is not downloaded again or replaced. If the teacher changed it, you are told and your copy is kept."></p></details>
+    <details><summary data-zh="能改保存位置吗？" data-en="Can I change the download folder?"></summary><p data-zh="可以，在本地网页点“更改”，或运行命令时加 --folder。新位置被当作新的下载目的地：原文件夹里的文件不会移动，需要重新选择课程。" data-en="Yes: click “Change” on the local page or pass --folder. The new folder is a new destination: files in the old one stay where they are, and you choose courses again."></p></details>
+    <details><summary data-zh="怎样清除登录状态？" data-en="How do I clear the sign-in?"></summary><p data-zh="运行 logout 命令，或在本地网页点“退出登录”。这会删除本机保存的会话和登录用的浏览器资料，不会删除已下载的课件。" data-en="Run the logout command, or click “Sign out” on the local page. This removes the saved session and the sign-in browser profile on this computer; downloaded files are kept."></p></details>
+    <details><summary data-zh="我的数据会去哪里？" data-en="Where does my data go?"></summary><p data-zh="登录 cookie 和密码只留在你的电脑上，不会发给本网站、AI 或任何第三方。下载的课件存在你选的文件夹。但 AI 通过这个工具读到的课程内容，会像你粘贴到聊天里的内容一样，发送给你选用的 AI 应用及其服务商。没有统计、遥测或广告。" data-en="Sign-in cookies and your password stay on your computer and are never sent to this website, the AI or anyone else. Downloaded files stay in your folder. Course content the AI reads through this tool is sent to the AI app you use and its provider, like anything you paste into a chat. No analytics, telemetry or ads."></p></details>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p data-zh="Liverpool Canvas 是学生维护的非官方开源工具，与利物浦大学和 Instructure 没有关联，也未获其认可。它只读取你自己账号本来就能看到的内容，请遵守学校的 IT 使用规定和各课程关于 AI 使用的要求，不要外传课程资料。" data-en="Liverpool Canvas is an unofficial open-source tool maintained by students. It is not affiliated with or endorsed by the University of Liverpool or Instructure. It only reads what your own account can already see. Follow the university’s IT rules and each module’s rules on AI use, and keep course materials to yourself."></p>
+    <p id="footMeta"></p>
+  </div>
+</footer>
+
+<script id="release" type="application/json">{"npmPackage":null,"published":false,"version":"0.0.0","repository":null,"pagesUrl":null}</script>
 <script>
-(function () {
-  var store = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-                set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
-  var body = document.body, root = document.documentElement;
-  var lang = store.get('lang') || (/^zh/i.test(navigator.language || '') ? 'zh' : 'en');
-  function setLang(l) {
-    lang = l; body.setAttribute('data-lang', l); root.lang = l === 'zh' ? 'zh-CN' : 'en';
-    document.getElementById('lang').textContent = l === 'zh' ? 'English' : '中文'; store.set('lang', l);
+(() => {
+  const R = JSON.parse(document.getElementById('release').textContent);
+  let lang = 'zh';
+  try { lang = localStorage.getItem('lc-site-lang') || 'zh'; } catch { /* no storage */ }
+  const T = (zh, en) => (lang === 'zh' ? zh : en);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const run = R.published ? `npx -y ${R.npmPackage}@latest` : null;
+
+  const CAPS = [
+    ['正常学校登录与会话续期', 'University sign-in and renewal', '（自动）登录一次，之后自动续期', '(automatic) sign in once, renewed as needed', '在浏览器里完成 SSO / MFA，无需 Access Token', 'SSO / MFA in a browser window, no access token'],
+    ['课程列表与学期识别', 'Courses and terms', '“列出我这学期的课程”', '“List my courses this term”', '本学期在前，往届和其他站点分开', 'This term first; past terms and other sites apart'],
+    ['近期与逾期待办、提交状态', 'Upcoming and overdue work', '“这周有什么要交？哪些还没提交？”', '“What is due this week, and what haven’t I submitted?”', '英国时间（含夏令时）；公告发布时间不会当成截止日期', 'UK time incl. BST; announcement dates are never shown as deadlines'],
+    ['作业详情、评分标准与附件', 'Assignment briefs, rubrics, attachments', '“把这次作业的要求和 rubric 给我”', '“Give me this assignment’s brief and rubric”', '', ''],
+    ['课程公告及其附件', 'Announcements and attachments', '“老师最近有什么通知？”', '“Any new announcements from my lecturers?”', '', ''],
+    ['模块结构和课程页面', 'Modules and pages', '“第三周的资料放在哪？”', '“Where are the week 3 materials?”', '', ''],
+    ['文件搜索、读取与文本提取', 'Find and read files', '“读一下 Week 2 的讲义，总结重点”', '“Read the week 2 slides and summarise them”', 'PDF、DOCX、HTML、文本可直接读取，其他格式可下载', 'PDF, DOCX, HTML and text are read; other formats are downloaded'],
+    ['单文件和整门课下载', 'Download files and whole courses', '“下载这门课的全部资料，以后只补新的”', '“Download everything for this course, and later only new files”', '先预览；已有文件不重复下载、不覆盖', 'Preview first; files you have are never downloaded again or replaced'],
+    ['讨论主题与回复', 'Discussions', '“讨论区里关于第二题大家怎么说？”', '“What did people say about Q2 in the discussion?”', '', ''],
+    ['成绩与教师反馈', 'Grades and feedback', '“我这门课现在多少分？老师评语是什么？”', '“What is my grade so far, and what feedback did I get?”', '仅限你自己有权限看的分数和评语', 'Only your own grades and comments'],
+    ['Canvas 站内信', 'Canvas Inbox', '“有没有老师给我发的站内信？”', '“Any Canvas messages from my tutors?”', '只读', 'Read-only'],
+    ['日历', 'Calendar', '“下个月有哪些考试和课程活动？”', '“Which tests and events are on next month?”', '', ''],
+    ['其他 Canvas 只读接口', 'Other read-only Canvas data', '“列出这门课的测验”', '“List the quizzes in this course”', '受控的 GET 接口，不会提交或修改任何内容', 'Controlled GET only; never submits or changes anything'],
+  ];
+
+  function cmdHtml(cmd, unpublishedLabel) {
+    return `<div class="cmd"><code>${esc(cmd)}</code><button type="button" data-copy="${esc(cmd)}">${T('复制', 'Copy')}</button></div>${unpublishedLabel ? `<p class="note"><span class="badge-warn">${T('发布后可用', 'Available once published')}</span> ${unpublishedLabel}</p>` : ''}`;
   }
-  setLang(lang);
-  document.getElementById('lang').onclick = function () { setLang(lang === 'zh' ? 'en' : 'zh'); };
-  var theme = store.get('theme'); if (theme) root.setAttribute('data-theme', theme);
-  document.getElementById('theme').onclick = function () {
-    var dark = root.getAttribute('data-theme') ? root.getAttribute('data-theme') === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-    var next = dark ? 'light' : 'dark'; root.setAttribute('data-theme', next); store.set('theme', next);
-  };
-  document.querySelectorAll('.tabs button').forEach(function (b) {
-    b.onclick = function () {
-      document.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-selected', x === b); });
-      document.querySelectorAll('.panel').forEach(function (p) { p.hidden = p.getAttribute('data-panel') !== b.getAttribute('data-tab'); });
-    };
+
+  function promptText() {
+    return [
+      T('请帮我安装并接入 Liverpool Canvas，用于我的利物浦大学 Canvas。', 'Please install and connect Liverpool Canvas for my University of Liverpool Canvas account.'),
+      `${T('项目仓库', 'Repository')}: ${R.repository || T('（尚未发布）', '(not published yet)')}`,
+      `${T('npm 包与版本', 'npm package and version')}: ${R.published ? `${R.npmPackage}@${R.version}` : T('（尚未发布）', '(not published yet)')}`,
+      `${T('学校地址', 'Canvas address')}: https://canvas.liverpool.ac.uk`,
+      '',
+      T('请先阅读项目 README，检查 Node.js 和 Chrome/Edge，然后按项目已验证的命令开始设置。', 'First read the project README, check Node.js and Chrome/Edge, then start setup with the commands the project documents.'),
+      T('让我在新开的学校登录窗口里自己输入账号、密码和 MFA，不要让我把密码发到聊天里。', 'Let me type my account, password and MFA myself in the sign-in window it opens; never ask me to send my password in the chat.'),
+      T('帮我确认适用的 AI 客户端并配置对应 MCP 服务；保留原设置并备份，不修改其他客户端。', 'Help me pick the AI app to use and configure its MCP server; keep and back up its existing settings, and do not change other apps.'),
+      T('接入完成后，我希望能查询课程、作业截止与提交状态、公告、作业要求和评分标准，也能读取资料、查看成绩反馈、讨论、站内信和日历。', 'Afterwards I want to ask about courses, deadlines and submission status, announcements, assignment briefs and rubrics, and read files, grades and feedback, discussions, Inbox messages and the calendar.'),
+      T('如果我选择直接使用本地网页，请按该路径启动。', 'If I choose to use the local page instead, start that.'),
+      T('下载前让我选择课程和下载目录。默认只下载本地没有的文件，已有文件不要重复下载、覆盖或移动。', 'Before downloading, let me choose the courses and the folder. Only download files I do not have; never download again, overwrite or move existing files.'),
+      T('如果你没有本地终端或文件操作能力，请提供我可以自己执行的具体步骤，不要声称已经完成安装。', 'If you cannot use a terminal or files on my computer, give me exact steps to do it myself, and do not claim the installation is done.'),
+    ].join('\n');
+  }
+
+  function render() {
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    for (const el of document.querySelectorAll('[data-zh]')) el.textContent = lang === 'zh' ? el.dataset.zh : el.dataset.en;
+    document.getElementById('langBtn').textContent = lang === 'zh' ? 'English' : '中文';
+    document.getElementById('capRows').innerHTML = CAPS.map((c) => `<tr><td><strong>${esc(T(c[0], c[1]))}</strong></td><td>${esc(T(c[2], c[3]))}</td><td>${esc(T(c[4], c[5]))}</td></tr>`).join('');
+    const pending = T('npm 包尚未发布，这条命令现在还不能用。开发版请按 GitHub 仓库 README 中“本地运行”的步骤。', 'The npm package is not published yet, so this command does not work yet. For the development version, follow “Run locally” in the repository README.');
+    const shown = run || `npx -y ${R.npmPackage || '@YOUR_NPM_SCOPE/liverpool-canvas'}@latest`;
+    document.getElementById('cmdBlock').innerHTML = cmdHtml(shown, R.published ? '' : pending);
+    document.getElementById('webCmd').innerHTML = cmdHtml(`${shown} web`, R.published ? '' : pending);
+    document.getElementById('prompt').value = promptText();
+    document.getElementById('promptState').innerHTML = R.published ? '' : `<div class="callout">${esc(T('项目尚未在 npm 发布，下面的 Prompt 里仓库和包名会显示为“尚未发布”。发布后此页面会自动显示实际地址。', 'The project is not on npm yet, so the prompt below says “not published yet” for the repository and package. This page shows the real ones after release.'))}</div>`;
+    const repo = document.getElementById('repoLink');
+    if (R.repository) { repo.href = R.repository; repo.hidden = false; }
+    document.getElementById('footMeta').innerHTML = `v${esc(R.version)}${R.repository ? ` · <a href="${esc(R.repository)}">GitHub</a>` : ''} · MIT · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
+  }
+
+  async function copy(text, btn) {
+    try { await navigator.clipboard.writeText(text); }
+    catch { const t = document.createElement('textarea'); t.value = text; document.body.append(t); t.select(); document.execCommand('copy'); t.remove(); }
+    const old = btn.textContent; btn.textContent = T('已复制', 'Copied'); setTimeout(() => { btn.textContent = old; }, 1500);
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-copy]');
+    if (b) copy(b.dataset.copy, b);
   });
-  document.querySelectorAll('pre').forEach(function (pre) {
-    var btn = document.createElement('button'); btn.className = 'copy'; btn.type = 'button'; btn.textContent = 'Copy';
-    btn.onclick = function () {
-      var t = pre.querySelector('code').innerText;
-      (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { btn.textContent = '✓'; setTimeout(function () { btn.textContent = 'Copy'; }, 1200); }, function () {});
-    };
-    pre.appendChild(btn);
-  });
+  document.getElementById('copyPrompt').addEventListener('click', (e) => copy(promptText(), e.currentTarget));
+  document.getElementById('langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; try { localStorage.setItem('lc-site-lang', lang); } catch { /* ignore */ } render(); });
+  render();
 })();
 </script>
 </body>

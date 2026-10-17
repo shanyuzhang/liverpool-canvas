@@ -78,7 +78,7 @@ export function documentsDir() {
   return documents;
 }
 
-export const defaultDownloadRoot = () => path.join(documentsDir(), 'Canvas');
+export const defaultDownloadRoot = () => (process.env.LIVERPOOL_CANVAS_TEST_ORIGIN && process.env.LIVERPOOL_CANVAS_DEMO_DEFAULT_ROOT) || path.join(documentsDir(), 'Canvas');
 
 // The download folder the user confirmed (setup, local page, or an AI tool call that asked them).
 // Null until confirmed. LIVERPOOL_CANVAS_DOWNLOADS overrides it, e.g. for scripts.

@@ -2,13 +2,13 @@ import { convert } from 'html-to-text';
 
 // Canvas stores pages, assignment descriptions and announcements as HTML. Models read plain
 // text better, and it is far fewer tokens. Links are kept so file links stay discoverable.
-export function htmlToText(html) {
+export function htmlToText(html, { links = true } = {}) {
   if (!html) return '';
   return convert(String(html), {
     wordwrap: false,
     selectors: [
       { selector: 'img', format: 'skip' },
-      { selector: 'a', options: { hideLinkHrefIfSameAsText: true, ignoreHref: false } },
+      { selector: 'a', options: { hideLinkHrefIfSameAsText: true, ignoreHref: !links } },
     ],
   }).replace(/\n{3,}/g, '\n\n').trim();
 }

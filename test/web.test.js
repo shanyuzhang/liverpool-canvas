@@ -110,3 +110,17 @@ test('end to end: confirm folder, list courses, preview, download, sync; only co
   assert.equal((await post('/api/open', { courseId: '999' })).status, 404);
   assert.equal((await post('/api/open', { courseId: '../..' })).status, 404);
 });
+
+test('job progress marks each course done when it finishes', async () => {
+  let job;
+  const r = await post('/api/sync', {});
+  assert.equal(r.status, 200, r.body);
+  for (let i = 0; i < 100; i++) { job = (await req('GET', '/api/job', { headers: { Cookie: cookie } })).json.job; if (job.state !== 'running') break; await new Promise((res) => setTimeout(res, 30)); }
+  assert.ok(job.courses.every((c) => c.state === 'done' && c.counts), JSON.stringify(job.courses));
+});
+
+test('demo/test mode never edits real AI app settings', async () => {
+  const r = await post('/api/connect', { clientId: 'claude-desktop' });
+  assert.equal(r.status, 400);
+  assert.match(r.json.message, /Demo mode/);
+});

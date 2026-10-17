@@ -26,7 +26,7 @@ export class Jobs {
     job.cancel = () => ctrl.abort(new Error('cancelled'));
     const course = (id) => job.courses.find((c) => c.id === String(id));
     const onEvent = (e) => {
-      const c = course(e.courseId);
+      const c = course(e.courseId ?? e.summary?.id);
       if (e.type === 'course' && c) { c.state = e.state; if (e.total != null) c.total = e.total; }
       else if (e.type === 'phase' && c) c.phase = e.phase;
       else if (e.type === 'file' && c) {

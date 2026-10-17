@@ -42,8 +42,8 @@ for (const c of courses) {
   let mods = [];
   await check(`${c.code}: modules`, 'canvas_list_modules', { course_id: cid }, (t) => { mods = parse(t) || []; return `${mods.length} modules`; });
   await check(`${c.code}: files`, 'canvas_list_files', { course_id: cid }, (t) => {
-    const j = parse(t); const n = Array.isArray(j) ? j.length : j?.files?.length;
-    return `${n} files${Array.isArray(j) ? '' : ' (Files tab hidden → module fallback)'}`;
+    const j = parse(t);
+    return j?.files ? `${j.files.length} files${j.complete ? '' : ' ✗ scan incomplete'}${j.note ? ' (Files tab hidden)' : ''}` : '✗';
   });
   await check(`${c.code}: assignments`, 'canvas_list_assignments', { course_id: cid }, (t) => Array.isArray(parse(t)) ? `${parse(t).length} assignments` : '✗');
   const pdf = mods.flatMap((m) => m.items || []).find((it) => it.file_id && /\.pdf$/i.test(it.title));

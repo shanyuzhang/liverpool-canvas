@@ -55,6 +55,7 @@ export async function startWeb({ port = 0, open = true, log = () => {}, idleMs =
   const sessionId = crypto.randomBytes(24).toString('base64url');
   const csrf = crypto.randomBytes(24).toString('base64url');
   const login = { state: 'idle', error: null };
+  let detected = null;   // which AI apps are installed; checked once per run (it starts `claude --version`)
   let lastSeen = Date.now();
   let resolveClosed;
   const closed = new Promise((r) => { resolveClosed = r; });
@@ -83,12 +84,12 @@ export async function startWeb({ port = 0, open = true, log = () => {}, idleMs =
     'GET /api/state': async () => {
       const me = await signedIn().catch(() => null);
       const root = cfg.downloadRoot();
-      const { clients } = await import('../clients.js');
+      detected ||= (await import('../clients.js')).clients().map((c) => ({ id: c.id, name: c.name, detected: c.detect() }));
       const r = release();
       return {
         version: r.version, published: r.published, canvas: base, user: me ? { name: me.name } : null, login,
         root, defaultRoot: cfg.defaultDownloadRoot(), selection: me && root ? cfg.savedSelection(base, me.id, root) || [] : [],
-        clients: clients().map((c) => ({ id: c.id, name: c.name, detected: c.detect() })), job: app.jobs.view(), csrf,
+        clients: detected, job: app.jobs.view(), csrf, demo: !!process.env.LIVERPOOL_CANVAS_TEST_ORIGIN,
         platform: process.platform, dataFolder: cfg.HOME,
       };
     },
@@ -120,7 +121,7 @@ export async function startWeb({ port = 0, open = true, log = () => {}, idleMs =
       return {
         upcoming: items.filter((it) => !['calendar_event', 'announcement'].includes(it.plannable_type)).map((it) => plannerRow(it, base)).slice(0, 12),
         announcements: anns.sort((a, b) => String(b.posted_at).localeCompare(String(a.posted_at))).slice(0, 6)
-          .map((a) => ({ course: names.get(a.context_code), title: a.title, posted: a.posted_at, text: htmlToText(a.message).slice(0, 280), url: a.html_url ? new URL(a.html_url, base).href : null })),
+          .map((a) => ({ course: names.get(a.context_code), title: a.title, posted: a.posted_at, text: htmlToText(a.message, { links: false }).slice(0, 280), url: a.html_url ? new URL(a.html_url, base).href : null })),
       };
     },
     'GET /api/job': async () => ({ job: app.jobs.view() }),
@@ -184,6 +185,8 @@ export async function startWeb({ port = 0, open = true, log = () => {}, idleMs =
       return { opened: target };
     },
     'POST /api/connect': async (body) => {
+      // The demo and tests run against a synthetic Canvas; they never edit real AI app settings.
+      if (process.env.LIVERPOOL_CANVAS_TEST_ORIGIN) throw httpError(400, 'Demo mode: AI app settings are not changed.');
       const { clients, ensureStableInstall } = await import('../clients.js');
       const c = clients().find((x) => x.id === body.clientId);
       if (!c) throw httpError(400, 'Unknown AI app.');

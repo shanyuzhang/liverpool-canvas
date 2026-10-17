@@ -11,9 +11,17 @@
 
   const t = (key, vars = {}) => String((I18N[lang] || I18N.zh)[key] ?? I18N.zh[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  // Always UK time (Canvas deadlines are set in UK time); BST/GMT is shown so nobody is caught
+  // out around the clock change.
   const fmtDate = (iso) => {
     if (!iso) return '';
-    try { return new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-GB', { timeZone: 'Europe/London', month: 'short', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).format(new Date(iso)); } catch { return iso; }
+    try {
+      const d = new Date(iso);
+      const raw = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', timeZoneName: 'short' }).formatToParts(d).find((p) => p.type === 'timeZoneName')?.value;
+      const zone = { 'GMT+0': 'GMT', 'GMT+1': 'BST', UTC: 'GMT' }[raw] || raw;
+      const when = new Intl.DateTimeFormat(lang === 'zh' ? 'zh-CN' : 'en-GB', { timeZone: 'Europe/London', month: 'short', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+      return lang === 'zh' ? `${when}（英国时间 ${zone}）` : `${when} ${zone}`;
+    } catch { return iso; }
   };
 
   function applyText() {
@@ -203,9 +211,11 @@
       const r = results.find((x) => String(x.id) === String(c.id));
       const counts = r?.counts || c.counts;
       const label = esc(r?.code || c.code || findCourse(c.id)?.code || c.id);
-      const st = c.state === 'scanning' ? `${t('scanning')} ${c.phase ? `(${t('phase_' + c.phase)})` : ''}` : c.state === 'downloading' ? t('downloading') : c.state === 'done' ? t('done') : '…';
+      const stopped = c.state === 'done' && counts?.cancelled;
+      const st = c.state === 'scanning' ? `${t('scanning')} ${c.phase ? `(${t('phase_' + c.phase)})` : ''}` : c.state === 'downloading' ? t('downloading')
+        : stopped ? t('stoppedCourse') : c.state === 'done' ? t('done') : running ? t('waiting') : t('notStarted');
       const lines = [];
-      if (counts) lines.push(t('countsLine', counts));
+      if (counts) lines.push(t('countsLine', counts) + (counts.cancelled ? ` · ${t('cancelledLine', counts)}` : ''));
       if (r?.counts.remoteUpdated) lines.push(t('remoteUpdated', { n: r.counts.remoteUpdated }));
       if (r?.counts.skipped) lines.push(t('skippedLine', { n: r.counts.skipped }));
       if (r?.counts.images) lines.push(t('imagesLine', { n: r.counts.images }));
