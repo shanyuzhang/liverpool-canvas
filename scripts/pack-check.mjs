@@ -74,6 +74,6 @@ const cookie = first.headers['set-cookie']?.[0]?.split(';')[0];
 const page = await get(new URL('/', url).href, { Cookie: cookie });
 const js = await get(new URL('/app.js', url).href, { Cookie: cookie });
 web.kill('SIGTERM');
-if (first.status !== 303 || page.status !== 200 || !page.body.includes('Liverpool Canvas') || js.status !== 200) throw new Error('local page check failed');
+if (first.status !== 303 || page.status !== 200 || !page.body.includes('Liverpool Canvas Assistant') || js.status !== 200) throw new Error('local page check failed');
 ok('installed local page starts on 127.0.0.1 and serves its files');
 console.log(`\nAll pack checks passed. Tarball: ${path.join(work, info.filename)}`);

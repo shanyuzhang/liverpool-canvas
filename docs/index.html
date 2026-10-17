@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Liverpool Canvas</title>
-<meta name="description" content="让 AI 帮你看利物浦大学 Canvas：作业截止、老师公告、课件下载，一句话问清楚。用学校账号正常登录。学生维护的非官方开源工具。">
-<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<title>Liverpool Canvas Assistant</title>
+<meta name="description" content="Liverpool Canvas Assistant：让你常用的 AI 帮你处理利物浦大学 Canvas 上的事，盯 DDL、看新通知、读作业要求和讲义、查成绩、下课件。用学校账号正常登录，只读。学生维护的非官方开源工具。">
+<link rel="icon" href="assets/icon.svg?v=2" type="image/svg+xml">
 <style>
 :root {
   --s0: #f5f5f3; --s1: #fcfcfb; --s2: #ffffff;
   --text: #20201e; --text-2: #373634; --muted: #6b6863; --faint: #a4a19b;
   --line: #e7e5df; --line-strong: #dedcd6;
   --clay: #d97757; --clay-strong: #cc5a36; --clay-tint: #fbf3ef; --on-clay: #ffffff;
-  --code: #f5f5f3; --ok: #3f7d4e;
+  --code: #f5f5f3;
   --ring: 0 0.25rem 1.25rem rgba(0,0,0,.035), inset 0 0 0 1px var(--line);
   --pop: 0 12px 40px rgba(32,32,30,.08), 0 2px 6px rgba(32,32,30,.04), inset 0 0 0 1px var(--line);
   --ease: cubic-bezier(.165,.84,.44,1);
@@ -24,7 +24,7 @@
     --text: #f5f5f3; --text-2: #dedcd6; --muted: #a4a19b; --faint: #6b6863;
     --line: #2e2d2b; --line-strong: #373634;
     --clay: #d97757; --clay-strong: #e08a6c; --clay-tint: #2b211c; --on-clay: #ffffff;
-    --code: #262624; --ok: #7fbf8e;
+    --code: #262624;
     --ring: 0 0.25rem 1.25rem rgba(0,0,0,.25), inset 0 0 0 1px var(--line);
     --pop: 0 12px 40px rgba(0,0,0,.4), inset 0 0 0 1px var(--line);
     color-scheme: dark;
@@ -35,7 +35,7 @@
   --text: #f5f5f3; --text-2: #dedcd6; --muted: #a4a19b; --faint: #6b6863;
   --line: #2e2d2b; --line-strong: #373634;
   --clay: #d97757; --clay-strong: #e08a6c; --clay-tint: #2b211c; --on-clay: #ffffff;
-  --code: #262624; --ok: #7fbf8e;
+  --code: #262624;
   --ring: 0 0.25rem 1.25rem rgba(0,0,0,.25), inset 0 0 0 1px var(--line);
   --pop: 0 12px 40px rgba(0,0,0,.4), inset 0 0 0 1px var(--line);
   color-scheme: dark;
@@ -48,48 +48,53 @@ h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.015em; }
 p { text-wrap: pretty; }
 a { color: var(--clay-strong); text-underline-offset: 3px; }
 .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+.nowrap { white-space: nowrap; }
 
-/* top */
+/* top bar */
 .top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--s1) 86%, transparent); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s var(--ease); }
 .top.scrolled { border-bottom-color: var(--line); }
-.top .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); text-decoration: none; }
+.top .wrap { display: flex; justify-content: space-between; align-items: center; height: 60px; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
 .brand img { width: 26px; height: 26px; }
-.nav { display: flex; gap: 4px; align-items: center; }
-.nav a, .nav button { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), color .12s var(--ease); }
+.nav { display: flex; gap: 2px; align-items: center; }
+.nav a, .nav button { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 6px 10px; border-radius: 8px; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), color .12s var(--ease); white-space: nowrap; }
 .nav a:hover, .nav button:hover { background: var(--s0); color: var(--text); }
-@media (max-width: 640px) { .nav .hide-sm { display: none; } }
+@media (max-width: 720px) { .nav .hide-sm { display: none; } }
 
 /* hero */
-.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+.hero { padding-top: 64px; padding-bottom: 48px; display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); background: var(--s2); box-shadow: var(--ring); padding: 4px 12px 4px 8px; border-radius: 999px; margin-bottom: 22px; }
 .eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); box-shadow: 0 0 0 3px var(--clay-tint); }
-.hero h1 { font-size: clamp(34px, 5.2vw, 52px); line-height: 1.12; font-weight: 650; }
-.hero h1 em { font-style: normal; color: var(--clay); white-space: nowrap; }
-.hero .lead { font-size: 18px; color: var(--muted); margin: 18px 0 30px; max-width: 520px; }
-.choices { display: grid; gap: 12px; max-width: 520px; }
-.choice { display: flex; align-items: center; gap: 14px; text-align: left; padding: 16px 18px; border-radius: 14px; background: var(--s2); box-shadow: var(--ring); color: var(--text); text-decoration: none; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
-.choice:hover { box-shadow: var(--pop); transform: translateY(-1px); }
-.choice .ico { flex: none; width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--s0); color: var(--text-2); }
-.choice.primary .ico { background: var(--clay); color: var(--on-clay); }
-.choice strong { display: block; font-weight: 600; }
-.choice small { display: block; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.choice .arrow { margin-left: auto; flex: none; color: var(--faint); transition: transform .2s var(--ease), color .2s var(--ease); }
-.choice:hover .arrow { transform: translateX(3px); color: var(--clay); }
+.hero h1 { font-size: clamp(34px, 5vw, 50px); line-height: 1.14; font-weight: 650; }
+.hero h1 em { font-style: normal; color: var(--clay); }
+.hero .lead { font-size: 18px; color: var(--muted); margin: 18px 0 28px; max-width: 520px; }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; padding: 0; list-style: none; }
+.chips li { font-size: 13px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.chips li::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--clay); }
+.chips li + li { margin-left: 8px; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-size: 15px; font-weight: 600; height: 44px; padding: 0 20px; border-radius: 10px; border: 0; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), box-shadow .12s var(--ease), transform .06s var(--ease); }
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--clay); color: var(--on-clay); }
+.btn.primary:hover { background: var(--clay-strong); }
+.btn.secondary { background: var(--s2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.btn.secondary:hover { background: var(--s0); }
+.btn:focus-visible, summary:focus-visible, .nav a:focus-visible, .nav button:focus-visible, .cmd button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
 
 /* chat illustration */
 .chat { background: var(--s2); border-radius: 20px; box-shadow: var(--pop); padding: 22px; display: grid; gap: 16px; }
-.bubble-user { justify-self: end; background: var(--s0); border-radius: 14px; padding: 10px 14px; max-width: 85%; font-size: 15px; }
+.bubble-user { justify-self: end; background: var(--s0); border-radius: 14px; padding: 10px 14px; max-width: 88%; font-size: 15px; }
 .answer { font-size: 15px; color: var(--text-2); }
-.answer .who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-.answer .spark { width: 18px; height: 18px; color: var(--clay); }
-.due { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
-.due li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 12px; border-radius: 10px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); }
-.due b { font-weight: 600; color: var(--text); }
-.due span { font-size: 13px; color: var(--muted); }
-.due .st { grid-row: span 2; align-self: center; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-.st.todo { color: var(--clay-strong); background: var(--clay-tint); }
-.st.done { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.spark { width: 18px; height: 18px; color: var(--clay); flex: none; }
+.items { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.items li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 12px; border-radius: 10px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); }
+.items b { font-weight: 600; color: var(--text); }
+.items span { font-size: 13px; color: var(--muted); }
+.items .st { grid-row: span 2; align-self: center; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.st.hot { color: var(--clay-strong); background: var(--clay-tint); }
+.st.calm { color: var(--muted); background: var(--s0); }
 .composer { display: flex; align-items: center; gap: 10px; border-radius: 16px; padding: 10px 10px 10px 16px; box-shadow: 0 0.25rem 1.25rem rgba(0,0,0,.035), inset 0 0 0 1px var(--line-strong); font-size: 15px; }
 .composer .typed { flex: 1; color: var(--text); min-height: 1.6em; }
 .composer .typed::after { content: ""; display: inline-block; width: 2px; height: 1.05em; background: var(--clay); margin-left: 2px; vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
@@ -98,48 +103,48 @@ a { color: var(--clay-strong); text-underline-offset: 3px; }
 .mock-note { text-align: center; font-size: 12px; color: var(--faint); margin-top: 10px; }
 
 /* sections */
-section { padding: 72px 0; scroll-margin-top: 60px; }
+section { padding: 76px 0; scroll-margin-top: 60px; }
 section.alt { background: var(--s0); }
-.head { max-width: 640px; margin-bottom: 36px; }
+.head { max-width: 660px; margin-bottom: 36px; }
 .head h2 { font-size: clamp(26px, 3.6vw, 34px); font-weight: 650; line-height: 1.25; }
 .head p { color: var(--muted); margin: 12px 0 0; font-size: 17px; }
+
+.caps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.cap { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 20px; display: grid; align-content: start; gap: 8px; transition: box-shadow .2s var(--ease), transform .2s var(--ease); }
+.cap:hover { box-shadow: var(--pop); transform: translateY(-1px); }
+.cap .ico { width: 36px; height: 36px; border-radius: 10px; background: var(--clay-tint); color: var(--clay-strong); display: grid; place-items: center; margin-bottom: 4px; }
+.cap h3 { font-size: 17px; font-weight: 600; }
+.cap p { margin: 0; color: var(--muted); font-size: 15px; }
+.cap q { display: block; margin-top: 4px; font-size: 14px; color: var(--text-2); background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); border-radius: 10px; padding: 8px 12px; quotes: none; }
+.cap.wide { grid-column: 1 / -1; grid-template-columns: auto 1fr; align-items: center; gap: 16px; }
+.cap.wide .ico { margin: 0; }
+
+.convos { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.convo { background: var(--s2); border-radius: 20px; box-shadow: var(--ring); padding: 22px; display: grid; gap: 14px; align-content: start; }
+.convo .answer p { margin: 0 0 8px; }
+.convo .answer p:last-child { margin: 0; }
+.convo .found { font-size: 12px; color: var(--faint); }
 
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .step { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
 .step .n { width: 28px; height: 28px; border-radius: 8px; background: var(--clay-tint); color: var(--clay-strong); font-weight: 650; display: grid; place-items: center; font-size: 14px; margin-bottom: 14px; font-variant-numeric: tabular-nums; }
 .step h3 { font-size: 17px; font-weight: 600; }
 .step p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
-
 .prompt-card { margin-top: 20px; background: var(--s2); border-radius: 20px; box-shadow: var(--pop); padding: 22px; }
-.prompt-card .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.seg { display: inline-flex; background: var(--s0); border-radius: 10px; padding: 3px; gap: 2px; }
-.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: background .12s var(--ease), color .12s var(--ease); }
-.seg button[aria-pressed="true"] { background: var(--s2); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.06), inset 0 0 0 1px var(--line); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-size: 15px; font-weight: 600; height: 40px; padding: 0 18px; border-radius: 10px; border: 0; cursor: pointer; text-decoration: none; transition: background .12s var(--ease), box-shadow .12s var(--ease), transform .06s var(--ease); }
-.btn:active { transform: scale(.98); }
-.btn.primary { background: var(--clay); color: var(--on-clay); }
-.btn.primary:hover { background: var(--clay-strong); }
-.btn.secondary { background: var(--s2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
-.btn.secondary:hover { background: var(--s0); }
-.btn:focus-visible, .choice:focus-visible, .seg button:focus-visible, summary:focus-visible, .nav a:focus-visible, .nav button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
-.prompt-text { margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; line-height: 1.65; color: var(--text-2); white-space: pre-wrap; max-height: 196px; overflow: auto; overflow-wrap: anywhere; }
-.where { margin: 14px 0 0; font-size: 14px; color: var(--muted); }
+.prompt-card .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.prompt-card .row strong { font-weight: 600; }
+.prompt-card .row small { display: block; color: var(--muted); font-size: 14px; }
+.prompt-text { margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; line-height: 1.65; color: var(--text-2); white-space: pre-wrap; max-height: 188px; overflow: auto; overflow-wrap: anywhere; }
 
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
-.shot { width: 100%; height: auto; display: block; border-radius: 14px; box-shadow: var(--pop); background: var(--s2); }
-.checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
-.checks li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; }
-.checks svg { margin-top: 4px; color: var(--clay); }
-.checks b { font-weight: 600; display: block; }
-.checks span { color: var(--muted); font-size: 15px; }
-
-.asks { display: flex; flex-wrap: wrap; gap: 10px; }
-.asks span { background: var(--s2); box-shadow: var(--ring); padding: 9px 14px; border-radius: 999px; font-size: 15px; color: var(--text-2); }
-
-.trust { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.trust div { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 20px; }
-.trust h3 { font-size: 16px; font-weight: 600; }
-.trust p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
+.rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+.rules .card { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
+.rules h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.list li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; }
+.list svg { margin-top: 4px; color: var(--clay); }
+.list b { font-weight: 600; display: block; }
+.list span { color: var(--muted); font-size: 15px; }
+.note { margin: 18px 0 0; font-size: 14px; color: var(--muted); background: var(--s2); box-shadow: var(--ring); border-radius: 12px; padding: 14px 16px; }
 
 details { background: var(--s2); border-radius: 12px; box-shadow: var(--ring); margin: 0 0 10px; }
 summary { list-style: none; cursor: pointer; padding: 16px 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-radius: 12px; }
@@ -154,10 +159,10 @@ details .body p { margin: 0 0 10px; }
 .cmd code { flex: 1; padding: 10px 12px; font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text); overflow-x: auto; white-space: pre; }
 .cmd button { border: 0; border-left: 1px solid var(--line); background: var(--s2); color: var(--text-2); font: inherit; font-size: 13px; padding: 0 14px; cursor: pointer; }
 .cmd button:hover { color: var(--clay-strong); }
-.pill-warn { display: inline-block; font-size: 12px; font-weight: 600; color: var(--clay-strong); background: var(--clay-tint); border-radius: 6px; padding: 1px 8px; }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; color: var(--clay-strong); background: var(--clay-tint); border-radius: 6px; padding: 1px 8px; }
 
 footer { padding: 36px 0 48px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); }
-footer p { margin: 0 0 8px; max-width: 760px; }
+footer p { margin: 0 0 8px; max-width: 780px; }
 footer a { color: var(--muted); }
 
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--text); color: var(--s1); padding: 10px 16px; border-radius: 10px; font-size: 14px; pointer-events: none; transition: opacity .2s var(--ease), transform .2s var(--ease); }
@@ -165,24 +170,24 @@ footer a { color: var(--muted); }
 
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; padding-top: 36px; gap: 36px; }
-  .two { grid-template-columns: 1fr; gap: 28px; }
-  .steps, .trust { grid-template-columns: 1fr; }
-  section { padding: 52px 0; }
+  .caps, .steps, .convos, .rules { grid-template-columns: 1fr; }
+  .cap.wide { grid-column: auto; grid-template-columns: 1fr; }
+  section { padding: 54px 0; }
   .prompt-card .row .btn { width: 100%; }
-  .prompt-card .row > span { display: none; }
 }
+@media (min-width: 861px) and (max-width: 1000px) { .caps { grid-template-columns: 1fr 1fr; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
 <header class="top" id="top">
   <div class="wrap">
-    <a class="brand" href="#"><img src="assets/icon.svg" alt=""> Liverpool Canvas</a>
+    <a class="brand" href="#"><img src="assets/icon.svg?v=2" alt=""> Liverpool Canvas Assistant</a>
     <nav class="nav">
+      <a class="hide-sm" href="#what" data-zh="能做什么" data-en="What it does"></a>
       <a class="hide-sm" href="#setup" data-zh="安装" data-en="Set up"></a>
-      <a class="hide-sm" href="#download" data-zh="下载课件" data-en="Downloads"></a>
-      <a class="hide-sm" href="#faq" data-zh="常见问题" data-en="FAQ"></a>
-      <a id="repoLink" href="#" hidden>GitHub</a>
+      <a class="hide-sm" href="#rules" data-zh="规定与安全" data-en="Rules & safety"></a>
+      <a id="repoLink" class="hide-sm" href="#" hidden>GitHub</a>
       <button id="langBtn" type="button">EN</button>
     </nav>
   </div>
@@ -191,113 +196,139 @@ footer a { color: var(--muted); }
 <main>
 <div class="wrap hero">
   <div>
-    <div class="eyebrow"><span class="dot"></span><span data-zh="给利物浦大学同学的免费小工具" data-en="A free tool for University of Liverpool students"></span></div>
-    <h1 data-zh-html="让 AI 帮你<br><em>盯着 Canvas</em>" data-en-html="Let AI <em>keep an eye on Canvas</em> for you"></h1>
-    <p class="lead" data-zh="作业什么时候交、老师发了什么通知、课件在哪儿，直接问 AI 就行。也可以一键把课件下到电脑，以后只下新的。" data-en="When is it due, what did the lecturer post, where are the slides? Just ask your AI. Or save all your course files to your computer in one go, and later get only the new ones."></p>
-    <div class="choices">
-      <a class="choice primary" href="#setup" data-goto="ai">
-        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg></span>
-        <span><strong data-zh="让 AI 帮我装" data-en="Let my AI set it up"></strong><small data-zh="复制一段话发给 AI，它帮你装好，你只需登录学校账号" data-en="Send your AI one message; it installs everything, you just sign in"></small></span>
-        <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-      </a>
-      <a class="choice" href="#download">
-        <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg></span>
-        <span><strong data-zh="我只想下载课件" data-en="I just want my course files"></strong><small data-zh="勾选课程，存到电脑，不用 AI 也行" data-en="Tick your courses and save them; no AI needed"></small></span>
-        <svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-      </a>
+    <div class="eyebrow"><span class="dot"></span><span data-zh="给利物浦大学同学的免费 AI 助理" data-en="A free AI assistant for University of Liverpool students"></span></div>
+    <h1 data-zh-html="Canvas 上的事，<br><span class=&quot;nowrap&quot;>交给 <em>AI</em> 盯着</span>" data-en-html="Let <em>AI</em> handle<br>your Canvas"></h1>
+    <p class="lead" data-zh="DDL 快到了、老师发了新通知、作业要求怎么写、讲义讲了什么、成绩出了没、课件在哪下，在你常用的 AI 里直接问。用学校账号正常登录，不用折腾。" data-en="Deadlines coming up, a new announcement, what the brief asks for, what the slides say, whether grades are out, where the files are: just ask the AI you already use. Sign in with your normal university account."></p>
+    <div class="cta">
+      <a class="btn primary" href="#setup" data-zh="让 AI 帮我装好" data-en="Let my AI set it up"></a>
+      <a class="btn secondary" href="#what" data-zh="看看能做什么" data-en="See what it can do"></a>
     </div>
+    <ul class="chips">
+      <li data-zh="免费开源" data-en="Free & open source"></li>
+      <li data-zh="只读不改" data-en="Read-only"></li>
+      <li data-zh="密码不经过 AI" data-en="Your password never reaches the AI"></li>
+    </ul>
   </div>
 
   <div aria-hidden="true">
     <div class="chat">
-      <div class="bubble-user" data-zh="这周有什么要交？我交了没？" data-en="What's due this week, and have I submitted?"></div>
+      <div class="bubble-user" data-zh="这周有什么 DDL？老师有没有发新通知？" data-en="Any deadlines this week? Anything new from my lecturers?"></div>
       <div class="answer">
-        <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助手" data-en="Your AI assistant"></span></div>
-        <span data-zh="这周有两项：" data-en="Two things this week:"></span>
-        <ul class="due">
-          <li><b>MATH253 Assignment 1</b><span class="st todo" data-zh="未提交" data-en="Not submitted"></span><span data-zh="周五 17:00 截止（英国时间）" data-en="Due Fri 17:00 UK time"></span></li>
-          <li><b>MATH268 Quiz 3</b><span class="st done" data-zh="已提交" data-en="Submitted"></span><span data-zh="周日 23:59 截止" data-en="Due Sun 23:59"></span></li>
+        <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助理" data-en="Your AI assistant"></span></div>
+        <ul class="items">
+          <li><b>MATH253 Assignment 1</b><span class="st hot" data-zh="未提交" data-en="Not submitted"></span><span data-zh="周五 17:00 截止（英国时间）" data-en="Due Fri 17:00 UK time"></span></li>
+          <li><b>MATH268 Quiz 3</b><span class="st calm" data-zh="已提交" data-en="Submitted"></span><span data-zh="周日 23:59 截止" data-en="Due Sun 23:59"></span></li>
+          <li><b data-zh="新通知 · MATH253" data-en="New · MATH253"></b><span class="st hot" data-zh="新" data-en="New"></span><span data-zh="“周四的课改到 Room 102”" data-en="“Thursday's class moves to Room 102”"></span></li>
         </ul>
       </div>
       <div class="composer"><span class="typed" id="typed"></span><span class="send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></span></div>
     </div>
-    <p class="mock-note" data-zh="示意图，课程为虚构" data-en="Illustration with fictional courses"></p>
+    <p class="mock-note" data-zh="示意图，课程和内容为虚构" data-en="Illustration; courses and content are fictional"></p>
   </div>
 </div>
+
+<section id="what" class="alt">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-zh="Canvas 上能看到的，它都能帮你处理" data-en="Anything you can see on Canvas, it can help with"></h2>
+      <p data-zh="你在网页上能打开的课程、作业、公告、文件、成绩，AI 都能读，再帮你整理、总结、提醒。" data-en="Courses, assignments, announcements, files and grades you can open in your browser, your AI can read too, then sort, summarise and remind you."></p>
+    </div>
+    <div class="caps" id="caps"></div>
+  </div>
+</section>
+
+<section id="examples">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-zh="用起来是这样" data-en="What it looks like"></h2>
+      <p data-zh="AI 会自己去模块、网页、公告附件里找，不用你一页一页点。（示例对话，课程为虚构）" data-en="Your AI looks through modules, pages and announcement attachments for you, so you don't click through page by page. (Example conversations with fictional courses.)"></p>
+    </div>
+    <div class="convos">
+      <div class="convo">
+        <div class="bubble-user" data-zh="把 Assignment 2 的题目和评分标准给我" data-en="Give me the Assignment 2 questions and the marking criteria"></div>
+        <div class="answer">
+          <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助理" data-en="Your AI assistant"></span></div>
+          <p data-zh="题目 PDF 没放在 Files 里，是挂在 10 月 3 日那条公告的附件里，我已经读完了：一共 4 题，第 3 题要求附上代码。" data-en="The question PDF isn't under Files; it's attached to the announcement from 3 October. I've read it: 4 questions, and Q3 asks for your code."></p>
+          <p data-zh="评分标准 5 项，“推导过程”占 40%。10 月 24 日 17:00 截止，你还没提交。要我逐题列出要点吗？" data-en="The rubric has 5 criteria; “working” is 40%. Due 24 October 17:00, not submitted yet. Want the key points for each question?"></p>
+        </div>
+      </div>
+      <div class="convo">
+        <div class="bubble-user" data-zh="帮我把这学期所有课的课件下到电脑上" data-en="Download this term's course files to my computer"></div>
+        <div class="answer">
+          <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助理" data-en="Your AI assistant"></span></div>
+          <p data-zh="先确认一下：存到“文稿/Canvas”可以吗？要下载 MATH253、MATH268、COMP207 这三门吗？" data-en="Quick check: save to Documents/Canvas? And the three courses MATH253, MATH268 and COMP207?"></p>
+          <p data-zh="好的，从模块、网页、公告和作业里一共找到 46 个文件，已按“课程/模块”整理好。有 2 个文件老师还没开放，开放后跟我说“补一下新文件”就行，已经下过的不会重复下载。" data-en="Done: 46 files found across modules, pages, announcements and assignments, sorted by course and module. 2 aren't released yet; once they are, ask me to fetch new files. Files you have are never downloaded twice."></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section id="setup" class="alt">
   <div class="wrap">
     <div class="head">
-      <h2 data-zh="三步用上，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
-      <p data-zh="适合 Claude 桌面版（Code 功能）、Codex 这类能在你电脑上操作的 AI。普通网页聊天没法帮你安装，可以看下面“常见问题”里的“自己动手装”。" data-en="Works with AIs that can act on your computer, such as the Claude desktop app (Code) or Codex. A plain web chat can't install anything; see “Install it yourself” in the questions below."></p>
+      <h2 data-zh="三步装好，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
+      <p data-zh="需要一个能在你电脑上操作的 AI，例如 Claude 桌面版的 Code 功能或 Codex。它会帮你检查环境、装好、接上。" data-en="You need an AI that can act on your computer, such as the Code feature in the Claude desktop app, or Codex. It checks your computer, installs and connects everything."></p>
     </div>
     <div class="steps">
-      <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会检查电脑环境、装好工具，过程中问你几个简单问题。" data-en="It checks your computer, installs the tool and asks you a couple of simple questions."></p></div>
-      <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: account, password and MFA. Never send your password to the AI."></p></div>
-      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，直接提问" data-en="Restart your AI and ask away"></h3><p data-zh="比如“这周有什么要交？”或者“把 MATH253 的课件都下下来”。" data-en="For example “What's due this week?” or “Download all the MATH253 files”."></p></div>
+      <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会一步步装好，中间问你几个简单问题，比如课件存到哪。" data-en="It sets things up step by step and asks a couple of simple questions, like where to save files."></p></div>
+      <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样，自己输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: type your account, password and MFA yourself. Never send your password to the AI."></p></div>
+      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，开始提问" data-en="Restart your AI and start asking"></h3><p data-zh="比如“这周有什么 DDL？”“老师最近发了什么？”" data-en="For example “Any deadlines this week?” or “What did my lecturers post recently?”"></p></div>
     </div>
-
     <div class="prompt-card">
       <div class="row">
-        <div class="seg" role="group">
-          <button type="button" data-mode="ai" aria-pressed="true" data-zh="接入 AI（推荐）" data-en="Connect my AI (recommended)"></button>
-          <button type="button" data-mode="files" aria-pressed="false" data-zh="只下载课件" data-en="Only download files"></button>
-        </div>
-        <span style="flex:1"></span>
+        <div><strong data-zh="发给 AI 的一段话" data-en="The message for your AI"></strong><small data-zh="复制后粘贴到 AI 的对话框里发送即可" data-en="Copy it and paste it into your AI chat"></small></div>
         <button class="btn primary" type="button" id="copyPrompt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span data-zh="复制这段话" data-en="Copy message"></span></button>
       </div>
       <div class="prompt-text" id="prompt"></div>
-      <p class="where" data-zh="课件默认存在“文稿 / Documents”里的 Canvas 文件夹，按“课程 / 模块 / 文件”整理，可以改。" data-en="Files go to a Canvas folder in your Documents by default, sorted by course / module / file. You can change it."></p>
     </div>
-
-    <div class="head" style="margin: 48px 0 16px">
-      <h2 style="font-size: 22px" data-zh="装好以后，可以这样问" data-en="Once it's set up, try asking"></h2>
-    </div>
-    <div class="asks" id="asks"></div>
   </div>
 </section>
 
-<section id="download">
-  <div class="wrap two">
-    <div>
-      <div class="head" style="margin-bottom: 24px">
-        <h2 data-zh="课件一键存到电脑" data-en="All your course files, in one click"></h2>
-        <p data-zh="装好后会在电脑上打开一个下载页面：勾选课程、确认保存位置，点一下就好。以后只下新的。" data-en="Once set up, a download page opens on your computer: tick your courses, confirm the folder, click once. Later, only new files."></p>
-      </div>
-      <ul class="checks">
-        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="找得全" data-en="Finds everything"></b><span data-zh="不只是 Files 页，模块、网页里的链接、公告附件、作业说明里的文件都会找到。" data-en="Not just the Files tab: modules, links inside pages, announcement attachments and assignment briefs too."></span></div></li>
-        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="不重复、不覆盖" data-en="No duplicates, no overwriting"></b><span data-zh="下过的文件直接跳过，你改过的文件也不会被替换。老师更新了会提醒你。" data-en="Files you have are skipped, and your edited copies are never replaced. You're told when a lecturer updates one."></span></div></li>
-        <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="下次点“补新文件”" data-en="Next time: “Fetch new files”"></b><span data-zh="只下载新上传的，几秒就好。不会在后台偷偷运行。" data-en="Only newly uploaded files, in seconds. Nothing runs in the background."></span></div></li>
-      </ul>
-      <p style="margin-top: 22px"><a class="btn secondary" href="#setup" data-goto="files" data-zh="复制“只下载课件”的那段话" data-en="Copy the “only download files” message"></a></p>
-    </div>
-    <img class="shot" src="assets/step-3-choose.png" alt="" loading="lazy" width="1180" height="820">
-  </div>
-</section>
-
-<section class="alt">
+<section id="rules">
   <div class="wrap">
-    <div class="head"><h2 data-zh="放心用" data-en="Safe to use"></h2></div>
-    <div class="trust">
-      <div><h3 data-zh="密码只在你自己手里" data-en="Your password stays with you"></h3><p data-zh="在学校的登录页面自己输入，工具和 AI 都拿不到。登录状态只存在你的电脑上。" data-en="You type it on the university sign-in page. Neither the tool nor the AI gets it. The sign-in is stored only on your computer."></p></div>
-      <div><h3 data-zh="只看不改" data-en="Look, don't touch"></h3><p data-zh="只读取你本来就能看到的内容，不会帮你交作业、发帖或改任何东西。" data-en="It only reads what you can already see. It never submits work, posts or changes anything."></p></div>
-      <div><h3 data-zh="免费、开源、非官方" data-en="Free, open source, unofficial"></h3><p data-zh="同学维护的开源项目，与学校无关。AI 读到的课程内容会发给你用的 AI 服务，和你平时粘贴进聊天一样。" data-en="An open-source project by students, not the university. Course content your AI reads goes to that AI service, like anything you paste into a chat."></p></div>
+    <div class="head">
+      <h2 data-zh="会不会违反学校规定？" data-en="Is this against the rules?"></h2>
+      <p data-zh="它的设计目标是：和你自己打开浏览器看 Canvas 一样，不多拿一点，也不绕开任何限制。但能不能用 AI、怎么用，最终以学校和每门课的规定为准。" data-en="It is built to behave like you opening Canvas in your own browser: nothing more, and no getting around any restriction. Whether and how you may use AI is still up to the university and each module."></p>
     </div>
+    <div class="rules">
+      <div class="card">
+        <h3 data-zh="这个工具怎么做" data-en="What the tool does"></h3>
+        <ul class="list">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="用你自己的账号正常登录" data-en="Your own account, normal sign-in"></b><span data-zh="走学校原本的登录页面和 MFA，不需要、也不会去申请 Access Token，不共享账号。" data-en="Uses the university's own sign-in and MFA. No access token needed or requested, no shared accounts."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="只看你本来就能看到的" data-en="Only what you can already see"></b><span data-zh="权限和你在浏览器里完全一样；老师没开放、锁住的内容一样看不到。" data-en="Exactly the access you have in your browser; anything unreleased or locked stays out of reach."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="只读，不交作业、不发帖" data-en="Read-only: no submitting, no posting"></b><span data-zh="对 Canvas 只发读取请求，不会提交、修改或删除任何内容。" data-en="Only read requests go to Canvas; nothing is submitted, changed or deleted."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="不绕过任何安全措施" data-en="No getting around security checks"></b><span data-zh="MFA、人机验证都由你自己完成，工具从不自动通过或绕过。" data-en="MFA and robot checks are always yours to complete; the tool never passes or bypasses them."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="按正常节奏访问" data-en="Normal pace"></b><span data-zh="只在你提问时才去读，不在后台定时抓取，请求频率和你自己浏览差不多。" data-en="It only reads when you ask; no background polling, about the pace of normal browsing."></span></div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 data-zh="你需要注意的" data-en="What's on you"></h3>
+        <ul class="list">
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><div><b data-zh="遵守学校的 IT 使用规定" data-en="Follow the university's IT rules"></b><span data-zh="账号只给自己用，不要把登录状态或这台电脑借给别人用。" data-en="Your account is for you only; don't let others use your sign-in or this setup."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><div><b data-zh="遵守学术诚信和课程的 AI 规定" data-en="Academic integrity and each module's AI rules"></b><span data-zh="用 AI 理解要求、整理资料、复习都很合适；但交上去的作业怎么用 AI，要看这门课的规定，拿不准就问老师。" data-en="Using AI to understand briefs, organise material and revise is a good fit; how AI may be used in work you submit depends on the module. If unsure, ask your lecturer."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><div><b data-zh="课件只供自己学习" data-en="Course materials are for your own study"></b><span data-zh="不要外传、转卖或上传到公开网站，讲义和试题受版权保护。" data-en="Don't share, sell or upload them publicly; slides and papers are copyrighted."></span></div></li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg><div><b data-zh="知道数据去了哪" data-en="Know where data goes"></b><span data-zh="密码和登录状态只在你电脑上；AI 读到的课程内容会发给你用的 AI 服务，和你把内容粘贴进聊天一样。" data-en="Your password and sign-in stay on your computer; course content your AI reads goes to that AI service, as if you pasted it into a chat."></span></div></li>
+        </ul>
+      </div>
+    </div>
+    <p class="note" data-zh="这是同学维护的非官方开源工具，与利物浦大学和 Instructure 没有关联，也没有得到学校认可。代码公开，任何人都可以检查它做了什么。" data-en="This is an unofficial open-source tool maintained by students. It is not affiliated with or endorsed by the University of Liverpool or Instructure. The code is public, so anyone can check what it does."></p>
   </div>
 </section>
 
-<section id="faq">
+<section id="faq" class="alt">
   <div class="wrap faq">
     <div class="head"><h2 data-zh="常见问题" data-en="Questions"></h2></div>
-    <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge），以及 Node.js（免费，到 nodejs.org 下载 LTS 版，一路下一步即可）。如果让 AI 帮你装，它会先帮你检查这些。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge) and Node.js (free: get the LTS version from nodejs.org and click through the installer). If your AI sets it up, it checks these first."></p></div></details>
+    <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge），以及 Node.js（免费，到 nodejs.org 下载 LTS 版，一路下一步）。让 AI 帮你装的话，它会先帮你检查这些。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge) and Node.js (free: get the LTS version from nodejs.org and click through). If your AI sets it up, it checks these first."></p></div></details>
+    <details><summary data-zh="能用网页版的 ChatGPT / Claude 吗？" data-en="Can I use ChatGPT or Claude in the browser?"></summary><div class="body"><p data-zh="网页聊天没法在你的电脑上安装和运行程序，所以接不上。需要能在电脑上操作的 AI 应用，比如 Claude 桌面版、Claude Code 或 Codex。" data-en="A web chat can't install or run anything on your computer, so it can't connect. You need an AI app that runs on your computer, such as the Claude desktop app, Claude Code or Codex."></p></div></details>
     <details><summary data-zh="弹出的登录窗口为什么没有我平时的登录？" data-en="Why isn't the sign-in window logged in like my normal browser?"></summary><div class="body"><p data-zh="那是一个单独的浏览器窗口，专门用来登录 Canvas，不会碰你平时浏览器里的账号。登录成功后会自动关闭。" data-en="It's a separate browser window just for Canvas and doesn't touch your everyday browser accounts. It closes by itself once you're in."></p></div></details>
-    <details><summary data-zh="过几天用不了了？" data-en="It stopped working after a few days?"></summary><div class="body"><p data-zh="登录过期了。AI 或下载页面会提示你，在弹出的窗口重新登录一次就好。" data-en="Your sign-in expired. Your AI or the download page will say so; just sign in again in the window that opens."></p></div></details>
-    <details><summary data-zh="为什么有些文件下不了？" data-en="Why can't some files be downloaded?"></summary><div class="body"><p data-zh="老师还没开放、设了开放时间或者限制了权限。会标明原因跳过，开放后点“补新文件”就能拿到。" data-en="The lecturer hasn't released them yet, set a date, or restricted them. They're skipped with a reason; click “Fetch new files” once they open."></p></div></details>
-    <details><summary data-zh="想换个文件夹 / 想退出登录？" data-en="Change the folder / sign out?"></summary><div class="body"><p data-zh="在下载页面里点“更改”换文件夹（原来的文件不会被动）；点“退出登录”清除这台电脑上的登录状态，已下载的课件不会删。" data-en="Click “Change” on the download page for a new folder (old files stay put); “Sign out” clears the sign-in on this computer and keeps your files."></p></div></details>
+    <details><summary data-zh="过几天 AI 说要重新登录？" data-en="After a few days the AI asks me to sign in again?"></summary><div class="body"><p data-zh="Canvas 的登录会过期。学校登录还记得你的话，窗口会自动完成；否则在弹出的窗口里重新登录一次就好。" data-en="Canvas sign-ins expire. If the university sign-in still remembers you, the window completes by itself; otherwise just sign in again."></p></div></details>
+    <details><summary data-zh="下载课件会重复下、覆盖我改过的文件吗？" data-en="Will downloads duplicate or overwrite my files?"></summary><div class="body"><p data-zh="不会。下过的文件直接跳过，你改过的文件不会被替换；老师更新了文件会提醒你，但保留你本地的版本。不想用 AI 也可以：让 AI 帮你“打开下载页面”，在页面里勾选课程下载。" data-en="No. Files you have are skipped and your edits are never replaced; if a lecturer updates a file you're told, and your copy is kept. Without AI, ask it once to “open the download page” and tick courses there."></p></div></details>
+    <details><summary data-zh="怎么退出、删除？" data-en="How do I sign out or remove it?"></summary><div class="body"><p data-zh="跟 AI 说“退出 Canvas 登录”即可清除这台电脑上的登录状态，已下载的课件不会删。不用了的话，让 AI 把它从 AI 应用的设置里移除。" data-en="Ask your AI to “sign out of Canvas” to clear the sign-in on this computer; downloaded files stay. To stop using it, ask your AI to remove it from the app's settings."></p></div></details>
     <details id="manual"><summary data-zh="自己动手装（会用终端的同学）" data-en="Install it yourself (if you use a terminal)"></summary><div class="body">
       <p data-zh="在终端（Mac：终端；Windows：PowerShell）里依次运行：" data-en="In a terminal (Terminal on Mac, PowerShell on Windows), run:"></p>
       <div id="manualCmds"></div>
-      <p data-zh="setup 会问你保存位置、打开登录窗口，并让你选一个要接入的 AI（可以跳过）。之后打开下载页面用 web，补新文件用 sync。" data-en="setup asks for a folder, opens the sign-in window, and lets you pick one AI app to connect (or skip). Afterwards use web for the download page and sync for new files."></p>
+      <p data-zh="setup 会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。" data-en="setup asks where to save files, opens the sign-in window and lets you pick the AI app to connect."></p>
       <p id="manualMore"></p>
     </div></details>
   </div>
@@ -306,7 +337,7 @@ footer a { color: var(--muted); }
 
 <footer>
   <div class="wrap">
-    <p data-zh="Liverpool Canvas 是学生维护的非官方开源工具，与利物浦大学和 Instructure 没有关联。请遵守学校 IT 规定和各课程关于 AI 的要求，不要外传课程资料。" data-en="Liverpool Canvas is an unofficial open-source tool maintained by students, not affiliated with the University of Liverpool or Instructure. Follow the university's IT rules and each module's AI rules, and keep course materials to yourself."></p>
+    <p data-zh="Liverpool Canvas Assistant 是学生维护的非官方开源工具，与利物浦大学和 Instructure 没有关联。Canvas 是 Instructure, Inc. 的商标。" data-en="Liverpool Canvas Assistant is an unofficial open-source tool maintained by students, not affiliated with the University of Liverpool or Instructure. Canvas is a trademark of Instructure, Inc."></p>
     <p id="footMeta"></p>
   </div>
 </footer>
@@ -318,63 +349,64 @@ footer a { color: var(--muted); }
   const R = JSON.parse(document.getElementById('release').textContent);
   let lang = 'zh';
   try { lang = localStorage.getItem('lc-site-lang') || 'zh'; } catch { /* no storage */ }
-  let mode = 'ai';
   const T = (zh, en) => (lang === 'zh' ? zh : en);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const $ = (id) => document.getElementById(id);
-
-  // How to run it today. Until the npm package is published this is the verified clone path.
   const repo = R.repository;
   const steps = R.published
     ? [`npx -y ${R.npmPackage}@latest setup`]
     : repo ? [`git clone ${repo}.git`, 'cd liverpool-canvas', 'npm install', 'node bin/cli.js setup'] : [];
 
-  const ASKS = [
-    ['这周有什么要交？我交了没？', 'What is due this week, and have I submitted?'],
-    ['老师最近发了什么通知？', 'Any new announcements from my lecturers?'],
-    ['把 Assignment 2 的要求和评分标准给我', 'Show me the Assignment 2 brief and rubric'],
-    ['读一下第三周的讲义，帮我总结重点', 'Read the week 3 slides and summarise them'],
-    ['我这门课现在多少分？老师怎么评价的？', 'What is my grade so far, and what was the feedback?'],
-    ['下个月有哪些考试？', 'Which tests are coming up next month?'],
-    ['把 MATH253 的课件都下下来，以后只下新的', 'Download all MATH253 files, and later only new ones'],
+  const I = {
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    list: '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
+    book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M8 7h8M8 11h6"/>',
+    chart: '<path d="M4 20V10m6 10V4m6 16v-7m4 7H2"/>',
+    chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    down: '<path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/>',
+  };
+  const CAPS = [
+    ['clock', '盯着 DDL', 'Watch your deadlines', '所有课程接下来要交什么、交了没、有没有逾期，按英国时间算。', 'What is due across all courses, whether you submitted, what is overdue, in UK time.', '这周有什么 DDL？哪些还没交？', 'Any deadlines this week? What haven\'t I submitted?'],
+    ['bell', '新通知不漏看', 'Never miss an announcement', '老师发的公告和附件，帮你挑出重要的：改时间、改教室、发新材料。', 'Lecturers\' announcements and attachments, with the important bits picked out.', '老师最近发了什么？有没有改时间？', 'What did lecturers post recently? Any changes?'],
+    ['list', '作业要求和评分标准', 'Briefs and rubrics', '把作业说明、评分标准和附带的文件一起读完，整理成清单。', 'Reads the brief, rubric and attached files together and turns them into a checklist.', '这次作业要我交什么？怎么打分？', 'What does this assignment want, and how is it marked?'],
+    ['book', '读讲义、帮你总结', 'Read and summarise slides', 'PDF、Word 讲义直接读成文字，总结重点、出复习题、找某个概念在哪讲的。', 'Reads PDF and Word slides, summarises them, makes revision questions, finds where a topic is covered.', '读一下第三周的讲义，总结重点', 'Read the week 3 slides and summarise them'],
+    ['chart', '成绩和老师反馈', 'Grades and feedback', '你自己的分数和老师评语，一次看全。', 'Your own scores and lecturer comments in one place.', '这门课我现在多少分？老师怎么评价的？', 'What is my grade so far, and what was the feedback?'],
+    ['cal', '考试、日程和课表', 'Exams and calendar', '日历里的考试、课程活动、答疑时间。', 'Tests, class events and office hours from your calendar.', '下个月有哪些考试？', 'Which tests are next month?'],
+    ['chat', '讨论区和站内信', 'Discussions and Inbox', '讨论区里大家怎么说、老师给你发的站内信。', 'What people said in discussions, and messages from tutors.', '讨论区里关于第二题大家怎么说？', 'What did people say about Q2 in the discussion?'],
+    ['down', '课件下到电脑，以后只下新的', 'Course files on your computer, then only new ones', '从模块、网页、公告、作业里把文件找全，按课程整理；下过的不重复下，你改过的不覆盖。', 'Finds files across modules, pages, announcements and assignments and sorts them by course; nothing is downloaded twice or overwritten.', '把这学期的课件都下下来', 'Download this term\'s course files'],
   ];
+  const TYPED = [['老师最近发了什么通知？', 'Anything new from my lecturers?'], ['读一下第三周的讲义，帮我总结重点', 'Summarise the week 3 slides for me'], ['Assignment 2 什么时候交？要求是什么？', 'When is Assignment 2 due, and what does it want?']];
 
   function promptText() {
-    const lines = [
-      T('请帮我安装并接入 Liverpool Canvas，用于我的利物浦大学 Canvas。', 'Please install and connect Liverpool Canvas for my University of Liverpool Canvas account.'),
+    return [
+      T('请帮我安装并接入 Liverpool Canvas Assistant，用于我的利物浦大学 Canvas。', 'Please install and connect Liverpool Canvas Assistant for my University of Liverpool Canvas account.'),
       `${T('项目仓库', 'Repository')}: ${repo || T('（尚未发布）', '(not published yet)')}`,
       `${T('npm 包与版本', 'npm package and version')}: ${R.published ? `${R.npmPackage}@${R.version}` : T('（尚未发布到 npm，请按 README 用 git clone 安装）', '(not on npm yet; install with git clone as the README says)')}`,
       `${T('学校地址', 'Canvas address')}: https://canvas.liverpool.ac.uk`,
       '',
       T('请先阅读项目 README，检查 Node.js 和 Chrome/Edge，然后按项目已验证的命令开始设置。', 'First read the project README, check Node.js and Chrome/Edge, then start setup with the commands the project documents.'),
       T('让我在新开的学校登录窗口里自己输入账号、密码和 MFA，不要让我把密码发到聊天里。', 'Let me type my account, password and MFA myself in the sign-in window it opens; never ask me to send my password in the chat.'),
-    ];
-    if (mode === 'ai') {
-      lines.push(
-        T('帮我确认适用的 AI 客户端并配置对应 MCP 服务；保留原设置并备份，不修改其他客户端。', 'Help me pick the AI app to use and configure its MCP server; keep and back up its existing settings, and do not change other apps.'),
-        T('接入完成后，我希望能查询课程、作业截止与提交状态、公告、作业要求和评分标准，也能读取资料、查看成绩反馈、讨论、站内信和日历。', 'Afterwards I want to ask about courses, deadlines and submission status, announcements, assignment briefs and rubrics, and read files, grades and feedback, discussions, Inbox messages and the calendar.'),
-        T('如果我选择直接使用本地网页，请按该路径启动。', 'If I choose to use the local page instead, start that.'),
-      );
-    } else {
-      lines.push(T('我只想下载课件：不用配置 AI 客户端，装好并登录后直接帮我打开本地下载网页。', 'I only want to download course files: skip connecting an AI app, and after setup and sign-in open the local download page for me.'));
-    }
-    lines.push(
+      T('帮我确认适用的 AI 客户端并配置对应 MCP 服务；保留原设置并备份，不修改其他客户端。', 'Help me pick the AI app to use and configure its MCP server; keep and back up its existing settings, and do not change other apps.'),
+      T('接入完成后，我希望能查询课程、作业截止与提交状态、公告、作业要求和评分标准，也能读取资料、查看成绩反馈、讨论、站内信和日历。', 'Afterwards I want to ask about courses, deadlines and submission status, announcements, assignment briefs and rubrics, and read files, grades and feedback, discussions, Inbox messages and the calendar.'),
+      T('如果我选择直接使用本地网页，请按该路径启动。', 'If I choose to use the local page instead, start that.'),
       T('下载前让我选择课程和下载目录。默认只下载本地没有的文件，已有文件不要重复下载、覆盖或移动。', 'Before downloading, let me choose the courses and the folder. Only download files I do not have; never download again, overwrite or move existing files.'),
       T('如果你没有本地终端或文件操作能力，请提供我可以自己执行的具体步骤，不要声称已经完成安装。', 'If you cannot use a terminal or files on my computer, give me exact steps to do it myself, and do not claim the installation is done.'),
-    );
-    return lines.join('\n');
+    ].join('\n');
   }
 
+  const svg = (k) => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
   function render() {
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     for (const el of document.querySelectorAll('[data-zh]')) el.textContent = lang === 'zh' ? el.dataset.zh : el.dataset.en;
     for (const el of document.querySelectorAll('[data-zh-html]')) el.innerHTML = lang === 'zh' ? el.dataset.zhHtml : el.dataset.enHtml;
     $('langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
+    $('caps').innerHTML = CAPS.map((c) => `<div class="cap"><span class="ico">${svg(c[0])}</span><h3>${esc(T(c[1], c[2]))}</h3><p>${esc(T(c[3], c[4]))}</p><q>“${esc(T(c[5], c[6]))}”</q></div>`).join('')
+      + `<div class="cap wide"><span class="ico">${svg('chat')}</span><p>${esc(T('还有更多：模块和课程页面、任意 Canvas 只读数据……你在 Canvas 网页上能看到的，都可以直接问。', 'And more: modules, course pages, any read-only Canvas data. If you can see it on Canvas, you can ask about it.'))}</p></div>`;
     $('prompt').textContent = promptText();
-    for (const b of document.querySelectorAll('.seg button')) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
-    $('asks').innerHTML = ASKS.map((a) => `<span>${esc(T(a[0], a[1]))}</span>`).join('');
     $('manualCmds').innerHTML = steps.map((c) => `<div class="cmd"><code>${esc(c)}</code><button type="button" data-copy="${esc(c)}">${T('复制', 'Copy')}</button></div>`).join('');
-    $('manualMore').innerHTML = R.published ? '' : `<span class="pill-warn">${T('npm 一行命令发布后可用', 'One-line npm command once published')}</span> ${esc(T('现在需要先装好 Git。更多说明见', 'For now this needs Git. More in the'))} ${repo ? `<a href="${esc(repo)}#readme">README</a>` : 'README'}`;
+    $('manualMore').innerHTML = R.published ? '' : `<span class="pill">${T('npm 一行命令发布后可用', 'One-line npm command once published')}</span> ${esc(T('现在需要先装好 Git。更多说明见', 'For now this needs Git. More in the'))} ${repo ? `<a href="${esc(repo)}#readme">README</a>` : 'README'}`;
     if (repo) { $('repoLink').href = repo; $('repoLink').hidden = false; }
     $('footMeta').innerHTML = `v${esc(R.version)} · MIT${repo ? ` · <a href="${esc(repo)}">GitHub</a>` : ''} · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
     restartTyping();
@@ -393,8 +425,8 @@ footer a { color: var(--muted); }
   function restartTyping() {
     clearTimeout(typingTimer);
     const el = $('typed');
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = T(ASKS[1][0], ASKS[1][1]); return; }
-    const list = [1, 3, 6].map((i) => T(ASKS[i][0], ASKS[i][1]));
+    const list = TYPED.map((x) => T(x[0], x[1]));
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = list[0]; return; }
     let i = 0; let n = 0; let back = false;
     const tick = () => {
       const s = list[i];
@@ -411,14 +443,7 @@ footer a { color: var(--muted); }
     tick();
   }
 
-  document.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-copy]');
-    if (b) copy(b.dataset.copy);
-    const m = e.target.closest('.seg button');
-    if (m) { mode = m.dataset.mode; render(); }
-    const g = e.target.closest('[data-goto]');
-    if (g) { mode = g.dataset.goto; render(); }
-  });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
   $('copyPrompt').addEventListener('click', () => copy(promptText(), T('已复制，粘贴给 AI 就行', 'Copied. Paste it to your AI')));
   $('langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; try { localStorage.setItem('lc-site-lang', lang); } catch { /* ignore */ } render(); });
   addEventListener('scroll', () => $('top').classList.toggle('scrolled', scrollY > 8), { passive: true });

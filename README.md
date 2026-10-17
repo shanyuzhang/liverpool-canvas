@@ -1,4 +1,4 @@
-# Liverpool Canvas
+# Liverpool Canvas Assistant
 
 把利物浦大学 Canvas（https://canvas.liverpool.ac.uk）接到你自己的 AI 助手：用学校正常登录，无需个人 Access Token。
 在 Claude、Codex 等应用里查询课程、截止任务、公告、作业要求、成绩、讨论、站内信和日历，读取课件。
@@ -150,6 +150,6 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 
 ## English
 
-Liverpool Canvas connects University of Liverpool Canvas to your own AI assistant using your normal university sign-in (no access token), and keeps a local copy of course files that only ever fetches what you do not have yet. It is an unofficial, read-only student tool.
+Liverpool Canvas Assistant connects University of Liverpool Canvas to your own AI assistant using your normal university sign-in (no access token), and keeps a local copy of course files that only ever fetches what you do not have yet. It is an unofficial, read-only student tool.
 
 Requirements: Node.js 22+, Chrome or Edge. The npm package is **not published yet**; run `git clone https://github.com/shanyuzhang/liverpool-canvas.git`, `cd liverpool-canvas`, `npm install`, then `node bin/cli.js setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `node bin/cli.js web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.

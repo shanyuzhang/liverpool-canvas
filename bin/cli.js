@@ -4,7 +4,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import readline from 'node:readline/promises';
 
-const HELP = `liverpool-canvas — University of Liverpool Canvas for your AI assistant, and course files on your computer
+const HELP = `Liverpool Canvas Assistant (command: liverpool-canvas) — your AI assistant for University of Liverpool Canvas
 (unofficial student tool; read-only on Canvas)
 
 Usage: liverpool-canvas [command] [options]
@@ -157,7 +157,7 @@ async function connect({ fromSetup = false } = {}) {
     if (fromSetup) return [];
     throw new Error(`Say which AI app to connect with --client (${all.map((x) => x.id).join(', ')}).`);
   } else {
-    say('\nWhich AI app should get Liverpool Canvas? Only the one you pick is changed.');
+    say('\nWhich AI app should get Liverpool Canvas Assistant? Only the one you pick is changed.');
     const opts = [...found.map((c) => ({ label: `${c.name}`, c })), { label: 'Another app (show the settings to paste)', manual: true }, { label: fromSetup ? 'Skip for now — I will use the local page' : 'Cancel', skip: true }];
     if (!found.length) say('(No supported AI app was found on this computer.)');
     const o = await choose('Number:', opts);
@@ -342,7 +342,7 @@ async function courses() {
 }
 
 async function setup() {
-  say('Liverpool Canvas setup');
+  say('Liverpool Canvas Assistant setup');
   say(`Canvas address: ${cfg.baseUrl()}  (University of Liverpool)\n`);
   const root = await chooseFolder({ forceAsk: !values.folder });
   if (!values['no-login']) {
@@ -362,7 +362,7 @@ async function setup() {
 
 async function menu() {
   if (!cfg.downloadRoot() || !cfg.readConfig().user) return setup();
-  say('Liverpool Canvas');
+  say('Liverpool Canvas Assistant');
   const o = await choose('What would you like to do?', [
     { label: 'Connect an AI app (Claude, Codex, …)', run: () => connect() },
     { label: 'Open the local page to download course files', run: () => web() },
