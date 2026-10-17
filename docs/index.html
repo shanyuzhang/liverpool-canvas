@@ -292,7 +292,7 @@ footer { padding: 28px 0 40px; color: var(--muted); font-size: 14px; border-top:
     for (const el of document.querySelectorAll('[data-zh]')) el.textContent = lang === 'zh' ? el.dataset.zh : el.dataset.en;
     document.getElementById('langBtn').textContent = lang === 'zh' ? 'English' : '中文';
     document.getElementById('capRows').innerHTML = CAPS.map((c) => `<tr><td><strong>${esc(T(c[0], c[1]))}</strong></td><td>${esc(T(c[2], c[3]))}</td><td>${esc(T(c[4], c[5]))}</td></tr>`).join('');
-    const pending = T('npm 包尚未发布，这条命令现在还不能用。开发版请按 GitHub 仓库 README 中“本地运行”的步骤。', 'The npm package is not published yet, so this command does not work yet. For the development version, follow “Run locally” in the repository README.');
+    const pending = T('npm 包尚未发布，这条命令现在还不能用。现在请按 GitHub 仓库 README 中“启动”一节，用 git clone 运行。', 'The npm package is not published yet, so this command does not work yet. For now, follow the clone-and-run steps under “启动” (Start) in the repository README.');
     const shown = run || `npx -y ${R.npmPackage || '@YOUR_NPM_SCOPE/liverpool-canvas'}@latest`;
     document.getElementById('cmdBlock').innerHTML = cmdHtml(shown, R.published ? '' : pending);
     document.getElementById('webCmd').innerHTML = cmdHtml(`${shown} web`, R.published ? '' : pending);
