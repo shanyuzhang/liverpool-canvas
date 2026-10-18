@@ -242,7 +242,7 @@ export function readHistory(index) {
 
 // One file, for reading it as text (canvas_read_file). The same index and rule as course
 // downloads: a file already saved is read from disk, never fetched again or replaced.
-export async function saveSingleFile(client, index, fileId, courseId) {
+export async function saveSingleFile(client, index, fileId, courseId, { flat = false } = {}) {
   let meta;
   const hinted = courseId || client.fileHints.get(String(fileId))?.courseId;
   try {
@@ -256,8 +256,8 @@ export async function saveSingleFile(client, index, fileId, courseId) {
   if (!cid && meta.folder_id) {
     try { const f = await client.get(`folders/${meta.folder_id}`); if (f.context_type === 'Course') cid = String(f.context_id); } catch (e) { if (isAuthError(e)) throw e; }
   }
-  let folder = 'Other files';
-  if (cid) {
+  let folder = flat ? '' : 'Other files';
+  if (cid && !flat) {
     const c = await client.course(cid).catch(() => null);
     if (c) folder = await courseFolder(index, { id: cid, code: c.course_code, name: c.name, term: c.term?.name, termStart: c.term?.start_at || c.start_at });
   }
@@ -265,7 +265,7 @@ export async function saveSingleFile(client, index, fileId, courseId) {
   const file = {
     id: meta.id, name: meta.display_name || meta.filename || `file-${meta.id}`, size: meta.size ?? null,
     updatedAt: meta.modified_at || meta.updated_at, contentType: meta['content-type'], url: meta.url,
-    subfolder: where ? [where] : [], sources: [{ kind: 'read', title: meta.display_name }],
+    subfolder: where && !flat ? [where] : [], sources: [{ kind: 'read', title: meta.display_name }],
   };
   const r = await saveFile(client, index, { courseId: cid || 'none', folder, file });
   if (r.status === 'failed') throw new Error(`Could not download ${file.name}: ${r.error}`);

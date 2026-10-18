@@ -49,10 +49,10 @@ test('every upstream tool is still there with the same required arguments; new t
     assert.ok(byName.has(name), `missing ${name}`);
     assert.deepEqual((byName.get(name).inputSchema.required || []).sort(), [...required].sort(), name);
   }
-  for (const name of ['canvas_preview_download', 'canvas_download_courses', 'canvas_sync_courses', 'canvas_download_status']) assert.ok(byName.has(name), name);
+  for (const name of ['canvas_preview_download', 'canvas_download_courses', 'canvas_sync_courses', 'canvas_download_status', 'canvas_download_file']) assert.ok(byName.has(name), name);
   // read-only on Canvas; only the tools that save files into the chosen folder are not marked read-only
   for (const t of tools) {
-    const saves = ['canvas_save_course_files', 'canvas_download_courses', 'canvas_sync_courses'].includes(t.name);
+    const saves = ['canvas_save_course_files', 'canvas_download_courses', 'canvas_sync_courses', 'canvas_download_file'].includes(t.name);
     assert.equal(t.annotations.readOnlyHint, !saves, t.name);
     assert.equal(t.annotations.destructiveHint, false, t.name);
   }
@@ -140,7 +140,7 @@ test('without a confirmed folder, download tools ask for one instead of picking 
   await c2.connect(new StdioClientTransport({ command: process.execPath, args: [cli, 'mcp'], env, stderr: 'pipe' }));
   try {
     const r = await c2.callTool({ name: 'canvas_download_courses', arguments: { course_ids: ['202'] } });
-    assert.match(r.content[0].text, /Ask the user where/);
+    assert.match(r.content[0].text, /ask the user before downloading/);
     const target = fs.mkdtempSync(path.join(os.tmpdir(), 'lc-mcp-chosen-'));
     const ok = JSON.parse((await c2.callTool({ name: 'canvas_download_courses', arguments: { course_ids: ['202'], download_folder: target } })).content[0].text);
     assert.equal(ok.summary[0].new, 2);

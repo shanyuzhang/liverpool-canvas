@@ -12,7 +12,7 @@ export async function startServer() {
   const server = new McpServer({ name: 'liverpool-canvas', version: release().version });
   let app = null;
   registerTools(server, async () => {
-    if (!app) { app = new App(); app.jobs = new Jobs(app); }
+    if (!app) { app = new App(); app.jobs = new Jobs(app); app.mcp = server.server; }
     return app;
   });
   await server.connect(new StdioServerTransport());

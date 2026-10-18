@@ -2,7 +2,8 @@ import fs from 'node:fs';
 import { z } from 'zod';
 import { htmlToText, extractText, window } from './text.js';
 import { fileIdsIn } from './links.js';
-import { confirmDownloadRoot, defaultDownloadRoot, savedSelection } from './config.js';
+import { confirmDownloadRoot, defaultDownloadRoot, savedSelection, resolveFolder } from './config.js';
+import { isAuthError } from './canvas.js';
 import { discoverCourseFiles, describeSource } from './discovery.js';
 import { saveSingleFile, readHistory } from './downloader.js';
 import { normaliseCourses, londonTime } from './courses.js';
@@ -55,11 +56,32 @@ export function plannerRow(it, base) {
   return drop({ ...row, course_id: it.course_id, id: it.plannable_id, url: it.html_url ? new URL(it.html_url, base).href : undefined });
 }
 
-const needFolder = () => text(`No download folder has been confirmed yet. Ask the user where course files should be saved (suggest ${defaultDownloadRoot()}), then call again with download_folder set to the folder they confirmed.`);
+// Where files go. A folder the user names (for example the project folder they have open in
+// their AI app) is used for that request; it becomes the default only when there is no default
+// yet or the user asks to remember it. Relative paths are taken inside their workspace.
+const FOLDER_HELP = 'Folder to save into, as the user asked. If they want the files where they are working, pass that folder (a relative path such as "papers" is created inside their current workspace). Used for this request; it becomes the default folder only if none is set yet or remember_folder is true.';
+const folderInput = {
+  download_folder: z.string().optional().describe(FOLDER_HELP),
+  remember_folder: z.boolean().optional().describe('Also make download_folder the default for later downloads (only when the user wants that)'),
+};
 
-async function folderReady(app, download_folder) {
-  if (download_folder) return confirmDownloadRoot(download_folder).root;
-  return app.root();
+async function pickFolder(app, download_folder, remember_folder, { rememberIfNoDefault = true } = {}) {
+  if (!download_folder) return app.root();
+  const dir = resolveFolder(download_folder, (await app.workspace?.()) || process.cwd());
+  fs.mkdirSync(dir, { recursive: true });
+  if (remember_folder || (rememberIfNoDefault && !app.root())) confirmDownloadRoot(dir);
+  return dir;
+}
+
+async function needFolder(app) {
+  const ws = await app.workspace?.();
+  return text([
+    'Where should the files go? No folder has been chosen yet, so ask the user before downloading. Offer:',
+    ws ? `- the folder they are working in now: ${ws}` : null,
+    `- ${defaultDownloadRoot()} (the usual default)`,
+    '- any other folder they name',
+    `Then call again with download_folder set to their choice${ws ? ` (a relative path goes inside ${ws})` : ''}.`,
+  ].filter(Boolean).join('\n'));
 }
 
 function jobReport(job, finished) {
@@ -267,19 +289,50 @@ export const TOOLS = [
     input: {
       file_id: id,
       course_id: id.optional().describe('The course it belongs to, so it is saved in that course folder'),
+      download_folder: z.string().optional().describe('Save the file straight into this folder (e.g. the folder the user is working in) instead of the course folder. Relative paths are inside the user\'s workspace.'),
       offset: z.number().int().min(0).optional().describe('Character offset for long files'),
       max_chars: z.number().int().min(500).max(100000).optional().describe('Characters to return (default 20000)'),
     },
-    async run(c, { file_id, course_id, offset, max_chars }, app) {
+    async run(c, { file_id, course_id, download_folder, offset, max_chars }, app) {
       if (course_id) c.noteFiles(course_id, [file_id]);
-      const index = await app.index();
-      const f = await saveSingleFile(c, index, file_id, course_id);
+      const folder = download_folder ? await pickFolder(app, download_folder, false, { rememberIfNoDefault: false }) : null;
+      const index = await app.index(folder || undefined);
+      const f = await saveSingleFile(c, index, file_id, course_id, { flat: !!folder });
       const buffer = fs.readFileSync(f.path);
       const head = `# ${f.name}\nsaved to: ${f.path}\nsize: ${buffer.length} bytes, updated on Canvas ${f.updatedAt}${f.remoteChanged ? '\nnote: Canvas has a newer version than the copy on this computer; the local copy was kept.' : ''}\n\n`;
       const body = await extractText(buffer, f).catch((e) => `(could not extract text: ${e.message})`);
       if (body === null) return text(head + `This file type (${f.contentType || 'unknown'}) cannot be read as text here. Open it from the saved path.`);
       if (!body.trim()) return text(head + '(No text layer, e.g. a scanned PDF. Open it from the saved path.)');
       return text(head + window(body, { offset, maxChars: max_chars }));
+    },
+  },
+  {
+    name: 'canvas_download_file',
+    title: 'Download files into a folder',
+    description: 'Save particular Canvas files (an exam paper, a handout, an assignment sheet the user asked for) straight into a folder, typically the folder the user is working in. Files land directly in that folder, without course/module subfolders unless keep_structure is true. A file already saved there is not downloaded again or overwritten; a different file with the same name is saved as "name (canvas-ID)". Returns the full path of each file.',
+    input: {
+      file_ids: z.array(id).min(1).max(100),
+      course_id: id.optional().describe('The course the files belong to'),
+      download_folder: z.string().optional().describe('Folder to save into, as the user asked. Relative paths such as "papers" are created inside the user\'s current workspace. Without it, the default download folder is used (with course folders).'),
+      keep_structure: z.boolean().optional().describe('Put files in <course>/<module> subfolders inside the folder'),
+    },
+    annotations: SAVES_FILES,
+    async run(c, { file_ids, course_id, download_folder, keep_structure }, app) {
+      const root = await pickFolder(app, download_folder, false, { rememberIfNoDefault: false });
+      if (!root) return needFolder(app);
+      const index = await app.index(root);
+      const flat = !!download_folder && !keep_structure;
+      const files = [];
+      for (const fid of file_ids) {
+        try {
+          const r = await saveSingleFile(c, index, fid, course_id, { flat });
+          files.push(drop({ file_id: fid, name: r.name, path: r.path, status: r.status === 'existing' ? 'already there (kept as is)' : r.status === 'restored' ? 'downloaded again (local copy was missing)' : 'downloaded', changed_on_canvas: r.remoteChanged || undefined }));
+        } catch (e) {
+          if (isAuthError(e)) throw e;
+          files.push({ file_id: fid, error: e.message });
+        }
+      }
+      return json({ folder: root, files });
     },
   },
   {
@@ -290,22 +343,24 @@ export const TOOLS = [
       course_id: id,
       search: z.string().min(2).optional().describe('Only files whose name contains this'),
       max: z.number().int().min(1).max(2000).optional().describe('At most this many files'),
-      download_folder: z.string().optional().describe('Only after the user confirmed it: the folder to save into'),
+      ...folderInput,
     },
     annotations: SAVES_FILES,
-    async run(c, { course_id, search, max, download_folder }, app) {
-      if (!await folderReady(app, download_folder)) return needFolder();
-      return startAndWait(app, { courseIds: [course_id], search, max });
+    async run(c, { course_id, search, max, download_folder, remember_folder }, app) {
+      const root = await pickFolder(app, download_folder, remember_folder);
+      if (!root) return needFolder(app);
+      return startAndWait(app, { courseIds: [course_id], search, max, root });
     },
   },
   {
     name: 'canvas_preview_download',
     title: 'Preview a course download',
     description: 'List which files of the chosen courses would be downloaded and which are already saved, without downloading anything.',
-    input: { course_ids: z.array(id).min(1), include_images: z.boolean().optional() },
-    async run(c, { course_ids, include_images }, app) {
-      if (!app.root()) return needFolder();
-      const job = await app.jobs.start({ courseIds: course_ids, preview: true, includeImages: include_images });
+    input: { course_ids: z.array(id).min(1), include_images: z.boolean().optional(), download_folder: z.string().optional().describe('The folder the download would go to (see canvas_download_courses)') },
+    async run(c, { course_ids, include_images, download_folder }, app) {
+      const root = download_folder ? resolveFolder(download_folder, (await app.workspace?.()) || process.cwd()) : app.root();
+      if (!root) return needFolder(app);
+      const job = await app.jobs.start({ courseIds: course_ids, preview: true, includeImages: include_images, root });
       const done = await app.jobs.wait(job, 50000);
       if (!done) return json(jobReport(job, false));
       if (job.error) return json({ error: job.error.message });
@@ -323,28 +378,29 @@ export const TOOLS = [
     input: {
       course_ids: z.array(id).min(1),
       include_images: z.boolean().optional().describe('Also save images that only appear inside page text'),
-      download_folder: z.string().optional().describe('Only after the user confirmed it: the folder to save into'),
-      remember: z.boolean().optional().describe('Remember these courses for later syncs (default true)'),
+      ...folderInput,
+      remember: z.boolean().optional().describe('Remember these courses (for this folder) for later syncs (default true)'),
     },
     annotations: SAVES_FILES,
-    async run(c, { course_ids, include_images, download_folder, remember = true }, app) {
-      if (!await folderReady(app, download_folder)) return needFolder();
-      return startAndWait(app, { courseIds: course_ids, includeImages: include_images, rememberSelection: remember });
+    async run(c, { course_ids, include_images, download_folder, remember_folder, remember = true }, app) {
+      const root = await pickFolder(app, download_folder, remember_folder);
+      if (!root) return needFolder(app);
+      return startAndWait(app, { courseIds: course_ids, includeImages: include_images, rememberSelection: remember, root });
     },
   },
   {
     name: 'canvas_sync_courses',
     title: 'Fetch new files',
-    description: 'For the courses the user chose before, download only files that are new on Canvas or missing locally. Does nothing until courses have been chosen.',
-    input: {},
+    description: 'For the courses the user chose before (for the default folder, or for download_folder), download only files that are new on Canvas or missing locally. Does nothing until courses have been chosen.',
+    input: { download_folder: z.string().optional().describe('Sync this folder instead of the default one') },
     annotations: SAVES_FILES,
-    async run(c, args, app) {
-      const root = app.root();
-      if (!root) return needFolder();
+    async run(c, { download_folder }, app) {
+      const root = download_folder ? resolveFolder(download_folder, (await app.workspace?.()) || process.cwd()) : app.root();
+      if (!root) return needFolder(app);
       const me = await app.user();
       const ids = savedSelection(app.base, me.id, root);
-      if (!ids?.length) return text('No courses have been chosen for this download folder yet. Ask the user which courses to download, then call canvas_download_courses.');
-      return startAndWait(app, { courseIds: ids });
+      if (!ids?.length) return text(`No courses have been chosen for ${root} yet. Ask the user which courses to download, then call canvas_download_courses.`);
+      return startAndWait(app, { courseIds: ids, root });
     },
   },
   {
@@ -354,7 +410,8 @@ export const TOOLS = [
     input: {},
     async run(c, args, app) {
       const root = app.root();
-      const out = { folder: root || `not chosen yet (suggest ${defaultDownloadRoot()})` };
+      const ws = await app.workspace?.();
+      const out = { default_folder: root || `not chosen yet (suggest ${defaultDownloadRoot()})`, user_workspace: ws || undefined };
       if (app.jobs.current) out.current = jobReport(app.jobs.current, app.jobs.current.state !== 'running');
       if (root) {
         const me = await app.user();

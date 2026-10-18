@@ -12,10 +12,10 @@ export class Jobs {
 
   running() { return this.current && this.current.state === 'running' ? this.current : null; }
 
-  async start({ courseIds, preview = false, includeImages = false, rememberSelection = false, search, max }) {
+  async start({ courseIds, preview = false, includeImages = false, rememberSelection = false, search, max, root: folder }) {
     if (this.running()) throw new BusyError();
     if (!courseIds?.length) throw new Error('Choose at least one course.');
-    const root = this.app.root();
+    const root = folder || this.app.root();
     if (!root) throw new Error('Choose and confirm a download folder first.');
     const index = await this.app.index(root);
     const ctrl = new AbortController();

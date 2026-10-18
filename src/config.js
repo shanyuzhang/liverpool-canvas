@@ -98,6 +98,20 @@ export function confirmDownloadRoot(dir) {
   return { root: resolved, changed: !!before && before !== resolved, previous: before };
 }
 
+// A folder the user named for a download. "~" is their home folder; a relative path such as
+// "papers" is taken inside `base` (the folder they are working in). The disk root and this
+// tool's own data folder are refused.
+export function resolveFolder(input, base = process.cwd()) {
+  let p = String(input || '').trim();
+  if (!p) throw new Error('Name a folder.');
+  if (p === '~' || p.startsWith('~/') || p.startsWith('~\\')) p = path.join(os.homedir(), p.slice(1));
+  const dir = path.resolve(base, p);
+  if (dir === path.parse(dir).root) throw new Error('Choose a folder of its own, not the top of the disk.');
+  const rel = path.relative(path.resolve(HOME), dir);
+  if (!rel || (!rel.startsWith('..') && !path.isAbsolute(rel))) throw new Error(`That is this tool's own data folder (${HOME}); choose another folder.`);
+  return dir;
+}
+
 // Download indexes and saved course choices belong to one Canvas account; another student
 // signing in on the same computer gets their own.
 export const accountKey = (origin, userId) => crypto.createHash('sha256').update(`${origin}|${userId}`).digest('hex').slice(0, 16);

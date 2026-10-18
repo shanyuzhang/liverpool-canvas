@@ -1,6 +1,6 @@
 {
   "name": "@shanyuzhang/liverpool-canvas",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Liverpool Canvas Assistant: connect your AI assistant to University of Liverpool Canvas with your normal university sign-in (no access token), and keep a local copy of course files that only ever fetches what you do not have yet. Unofficial, read-only.",
   "type": "module",
   "main": "src/server.js",

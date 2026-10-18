@@ -1,4 +1,7 @@
-import { baseUrl, readConfig, writeConfig, downloadRoot, defaultDownloadRoot } from './config.js';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { baseUrl, readConfig, writeConfig, downloadRoot, defaultDownloadRoot, HOME } from './config.js';
 import { renewSession, savedSession } from './browser.js';
 import { CanvasClient } from './canvas.js';
 import { DownloadIndex } from './store.js';
@@ -28,6 +31,12 @@ export function sessionProvider(base, open = renewWithConfig, saved = savedSessi
   };
 }
 
+export function looksLikeProject(dir) {
+  const d = path.resolve(dir);
+  const inside = (parent) => { const rel = path.relative(path.resolve(parent), d); return !rel || (!rel.startsWith('..') && !path.isAbsolute(rel)); };
+  return d !== path.parse(d).root && d !== path.resolve(os.homedir()) && !inside(HOME) && !/[\\/](_npx|node_modules)([\\/]|$)/.test(d);
+}
+
 export class App {
   constructor({ client, base = baseUrl(), session } = {}) {
     this.base = base;
@@ -46,6 +55,20 @@ export class App {
   }
 
   root() { return downloadRoot(); }
+
+  // The folder the user is working in inside their AI app: the workspace the app reports
+  // (MCP "roots"), else the folder the app started this server in when that looks like a
+  // project folder (not the disk root, the home folder, or an install/cache folder).
+  async workspace() {
+    try {
+      if (this.mcp?.getClientCapabilities?.()?.roots) {
+        const r = await Promise.race([this.mcp.listRoots(), new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))]);
+        const uri = (r.roots || []).find((x) => String(x.uri).startsWith('file://'))?.uri;
+        if (uri) return fileURLToPath(uri);
+      }
+    } catch { /* the app does not report a workspace */ }
+    return looksLikeProject(process.cwd()) ? process.cwd() : null;
+  }
   rootOrDefault() { return downloadRoot() || defaultDownloadRoot(); }
 
   async index(root = this.rootOrDefault()) {
