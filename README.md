@@ -13,7 +13,7 @@
 
 ## 启动
 
-> **npm 包尚未发布。** 发布后的入口会是 `npx -y @<scope>/liverpool-canvas@latest`（scope 待定，见 [RELEASE.md](RELEASE.md)）。在那之前，请用下面经过验证的本地方式。
+> **npm 包尚未发布。** 包名已定为 `@shanyuzhang/liverpool-canvas`，发布后的入口是 `npx -y @shanyuzhang/liverpool-canvas@latest setup`（见 [RELEASE.md](RELEASE.md)）。在那之前，请用下面经过验证的本地方式（不需要 GitHub 账号，但需要装有 Git）。
 
 ```bash
 git clone https://github.com/shanyuzhang/liverpool-canvas.git

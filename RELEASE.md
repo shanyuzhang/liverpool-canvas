@@ -1,6 +1,6 @@
 # 发布、回滚与配置
 
-当前状态：**未发布**。npm 包名是占位符 `@your-npm-scope/liverpool-canvas`，`release.json` 中 `published: false`、没有仓库和网页地址。网页和程序据此把 npm 命令标为“发布后可用”。
+当前状态：**npm 未发布**。包名已定为 `@shanyuzhang/liverpool-canvas`（`publishConfig.access = public`），仓库 https://github.com/shanyuzhang/liverpool-canvas ，网页 https://shanyuzhang.com/liverpool-canvas/ 。`release.json` 中 `published: false`，网页和程序据此仍显示 git clone 的安装方式。
 
 ## 唯一的发布配置
 
