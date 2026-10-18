@@ -137,9 +137,15 @@ section.alt { background: var(--s0); }
 .prompt-text { margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; line-height: 1.65; color: var(--text-2); white-space: pre-wrap; max-height: 188px; overflow: auto; overflow-wrap: anywhere; }
 
 .self { margin-top: 16px; background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 18px 20px; }
+.self-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .self-head strong { font-weight: 600; display: block; }
+.self-how { margin: 12px 0 4px; font-size: 15px; color: var(--text-2); }
+.seg { display: inline-flex; background: var(--s0); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted); padding: 5px 14px; border-radius: 8px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--s2); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.06), inset 0 0 0 1px var(--line); }
 .self-head small { display: block; color: var(--muted); font-size: 14px; margin: 2px 0 6px; }
 .self-note { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.self-note code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--s0); padding: 2px 6px; border-radius: 6px; overflow-wrap: anywhere; }
 .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .rules .card { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
 .rules h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
@@ -235,7 +241,7 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <div class="head">
       <h2 data-zh="三步装好，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
-      <p data-zh="需要一个能在你电脑上操作的 AI，例如 Claude 桌面版的 Code 功能或 Codex。它会帮你检查环境、装好、接上。" data-en="You need an AI that can act on your computer, such as the Code feature in the Claude desktop app, or Codex. It checks your computer, installs and connects everything."></p>
+      <p data-zh="用 Claude 桌面版（Code 功能）或 Codex 这类能操作电脑的 AI，发一段话让它帮你装；或者自己在终端里运行一条命令。两种都会带你登录学校账号、选一个 AI 应用接上。" data-en="Ask an AI that can act on your computer (the Code feature in the Claude desktop app, or Codex) to set it up with one message, or run one command yourself. Either way you sign in and pick an AI app to connect."></p>
     </div>
     <div class="steps">
       <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会一步步装好，中间问你几个简单问题，比如课件存到哪。" data-en="It sets things up step by step and asks a couple of simple questions, like where to save files."></p></div>
@@ -250,7 +256,14 @@ footer a { color: var(--muted); }
       <div class="prompt-text" id="prompt"></div>
     </div>
     <div class="self">
-      <div class="self-head"><strong data-zh="会用终端？也可以自己装" data-en="Comfortable with a terminal? Install it yourself"></strong><small data-zh="不需要 GitHub 账号。在 Mac 的“终端”或 Windows 的 PowerShell 里依次运行：" data-en="No GitHub account needed. In Terminal (Mac) or PowerShell (Windows), run:"></small></div>
+      <div class="self-top">
+        <div class="self-head"><strong data-zh="或者：自己运行一条命令装好" data-en="Or: install it yourself with one command"></strong><small data-zh="不用提前装 Node.js、Git 或 GitHub 账号，缺什么会自动准备。" data-en="No need to install Node.js, Git or a GitHub account first; anything missing is set up for you."></small></div>
+        <div class="seg" role="group" id="osSeg">
+          <button type="button" data-os="mac" aria-pressed="true">Mac</button>
+          <button type="button" data-os="win" aria-pressed="false">Windows</button>
+        </div>
+      </div>
+      <p class="self-how" id="osHow"></p>
       <div id="manualCmds"></div>
       <p class="self-note" id="manualMore"></p>
     </div>
@@ -329,7 +342,7 @@ footer a { color: var(--muted); }
 <section id="faq" class="alt">
   <div class="wrap faq">
     <div class="head"><h2 data-zh="常见问题" data-en="Questions"></h2></div>
-    <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge），以及 Node.js（免费，到 nodejs.org 下载 LTS 版，一路下一步）。让 AI 帮你装的话，它会先帮你检查这些。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge) and Node.js (free: get the LTS version from nodejs.org and click through). If your AI sets it up, it checks these first."></p></div></details>
+    <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge）就够了。运行环境 Node.js 不用自己装：安装命令发现电脑上没有，会从 nodejs.org 下载官方版本，放在你的用户文件夹里，不需要管理员密码。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge). You don't need to install Node.js yourself: if it's missing, the install command downloads the official version from nodejs.org into your user folder, no admin password needed."></p></div></details>
     <details><summary data-zh="能用网页版的 ChatGPT / Claude 吗？" data-en="Can I use ChatGPT or Claude in the browser?"></summary><div class="body"><p data-zh="网页聊天没法在你的电脑上安装和运行程序，所以接不上。需要能在电脑上操作的 AI 应用，比如 Claude 桌面版、Claude Code 或 Codex。" data-en="A web chat can't install or run anything on your computer, so it can't connect. You need an AI app that runs on your computer, such as the Claude desktop app, Claude Code or Codex."></p></div></details>
     <details><summary data-zh="弹出的登录窗口为什么没有我平时的登录？" data-en="Why isn't the sign-in window logged in like my normal browser?"></summary><div class="body"><p data-zh="那是一个单独的浏览器窗口，专门用来登录 Canvas，不会碰你平时浏览器里的账号。登录成功后会自动关闭。" data-en="It's a separate browser window just for Canvas and doesn't touch your everyday browser accounts. It closes by itself once you're in."></p></div></details>
     <details><summary data-zh="过几天 AI 说要重新登录？" data-en="After a few days the AI asks me to sign in again?"></summary><div class="body"><p data-zh="Canvas 的登录会过期。学校登录还记得你的话，窗口会自动完成；否则在弹出的窗口里重新登录一次就好。" data-en="Canvas sign-ins expire. If the university sign-in still remembers you, the window completes by itself; otherwise just sign in again."></p></div></details>
@@ -358,8 +371,10 @@ footer a { color: var(--muted); }
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const $ = (id) => document.getElementById(id);
   const repo = R.repository;
-  const steps = R.published
-    ? [`npx -y ${R.npmPackage}@latest setup`]
+  const site = (R.pagesUrl || '').replace(/\/?$/, '/');
+  let os = /Win/i.test(navigator.platform || navigator.userAgent) ? 'win' : 'mac';
+  const steps = () => R.published
+    ? [os === 'win' ? `irm ${site}install.ps1 | iex` : `curl -fsSL ${site}install.sh | bash`]
     : repo ? [`git clone ${repo}.git`, 'cd liverpool-canvas', 'npm install', 'node bin/cli.js setup'] : [];
 
   const I = {
@@ -410,9 +425,15 @@ footer a { color: var(--muted); }
     $('caps').innerHTML = CAPS.map((c) => `<div class="cap"><span class="ico">${svg(c[0])}</span><h3>${esc(T(c[1], c[2]))}</h3><p>${esc(T(c[3], c[4]))}</p><q>“${esc(T(c[5], c[6]))}”</q></div>`).join('')
       + `<div class="cap wide"><span class="ico">${svg('chat')}</span><p>${esc(T('还有更多：模块和课程页面、任意 Canvas 只读数据……你在 Canvas 网页上能看到的，都可以直接问。', 'And more: modules, course pages, any read-only Canvas data. If you can see it on Canvas, you can ask about it.'))}</p></div>`;
     $('prompt').textContent = promptText();
-    $('manualCmds').innerHTML = steps.map((c) => `<div class="cmd"><code>${esc(c)}</code><button type="button" data-copy="${esc(c)}">${T('复制', 'Copy')}</button></div>`).join('');
+    for (const b of document.querySelectorAll('#osSeg button')) b.setAttribute('aria-pressed', String(b.dataset.os === os));
+    $('osSeg').hidden = !R.published;
+    $('osHow').textContent = !R.published ? '' : os === 'win'
+      ? T('在开始菜单搜索“PowerShell”并打开，粘贴下面这一行，按回车：', 'Open “PowerShell” from the Start menu, paste this line and press Enter:')
+      : T('打开“终端”（按 ⌘ 空格，输入“终端”），粘贴下面这一行，按回车：', 'Open Terminal (press ⌘ Space and type “Terminal”), paste this line and press Enter:');
+    $('manualCmds').innerHTML = steps().map((c) => `<div class="cmd"><code>${esc(c)}</code><button type="button" data-copy="${esc(c)}">${T('复制', 'Copy')}</button></div>`).join('');
     $('manualMore').innerHTML = R.published
-      ? esc(T('它会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。', 'It asks where to save files, opens the sign-in window and lets you pick the AI app to connect.'))
+      ? `${esc(T('它会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。以后想打开下载页面、重新登录或换个 AI，再运行一次同一条命令就行。', 'It asks where to save files, opens the sign-in window and lets you pick the AI app to connect. To open the download page, sign in again or switch AI apps later, run the same command again.'))}
+        ${repo ? `<a href="${esc(repo)}/blob/main/docs/install.${os === 'win' ? 'ps1' : 'sh'}">${T('看看这条命令做了什么', 'See what this command does')}</a> · ` : ''}${esc(T('已经装好 Node.js 22+ 的同学也可以直接用', 'Already have Node.js 22+? You can also run'))} <code>npx -y ${esc(R.npmPackage)}@latest</code>`
       : `${esc(T('第一行需要电脑上装有 Git（免费，', 'The first line needs Git installed (free, '))}<a href="https://git-scm.com/downloads">git-scm.com</a>${esc(T('）。最后一步会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。', '). The last step asks where to save files, opens the sign-in window and lets you pick the AI app to connect.'))} <span class="pill">${T('发布到 npm 后会变成一行命令，不再需要 Git', 'Becomes a single command once on npm, no Git needed')}</span>`;
     if (repo) { $('repoLink').href = repo; $('repoLink').hidden = false; }
     $('footMeta').innerHTML = `v${esc(R.version)} · MIT${repo ? ` · <a href="${esc(repo)}">GitHub</a>` : ''} · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
@@ -450,7 +471,12 @@ footer a { color: var(--muted); }
     tick();
   }
 
-  document.addEventListener('click', (e) => { const b = e.target.closest('[data-copy]'); if (b) copy(b.dataset.copy); });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-copy]');
+    if (b) copy(b.dataset.copy);
+    const o = e.target.closest('#osSeg button');
+    if (o) { os = o.dataset.os; render(); }
+  });
   $('copyPrompt').addEventListener('click', () => copy(promptText(), T('已复制，粘贴给 AI 就行', 'Copied. Paste it to your AI')));
   $('langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; try { localStorage.setItem('lc-site-lang', lang); } catch { /* ignore */ } render(); });
   addEventListener('scroll', () => $('top').classList.toggle('scrolled', scrollY > 8), { passive: true });

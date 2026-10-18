@@ -18,5 +18,12 @@ fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
 fs.writeFileSync(path.join(out, 'index.html'), html);
 for (const f of fs.readdirSync(path.join(root, 'docs', 'assets'))) fs.copyFileSync(path.join(root, 'docs', 'assets', f), path.join(out, 'assets', f));
+// One-step installers, with the real package name filled in. They only ever start the published
+// package, so they are only offered once it is on npm.
+for (const f of ['install.sh', 'install.ps1']) {
+  const text = fs.readFileSync(path.join(root, 'docs', f), 'utf8').replaceAll('{{PKG}}', r.npmPackage);
+  if (f.endsWith('.ps1') && /[^\x00-\x7f]/.test(text)) throw new Error('install.ps1 must stay plain ASCII (Windows PowerShell 5.1 reads it without a charset)');
+  fs.writeFileSync(path.join(out, f), f.endsWith('.ps1') ? text.replace(/\r?\n/g, '\r\n') : text);
+}
 fs.writeFileSync(path.join(out, '.nojekyll'), '');
 console.log(`Built ${path.relative(root, out)}/ (${data.published ? `published ${data.npmPackage}@${data.version}` : 'not published: npm commands are labelled "available once published"'})`);

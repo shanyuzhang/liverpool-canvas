@@ -1,0 +1,58 @@
+name: Installers
+on:
+  push:
+    branches: [main]
+    paths: ['docs/install.sh', 'docs/install.ps1', 'scripts/build-site.mjs', '.github/workflows/installers.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  # Runs the one-step installers from a fresh checkout, forcing the Node.js download path,
+  # against the package that is published on npm.
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/build-site.mjs
+      - name: curl | bash style, forced Node download
+        env:
+          LC_FORCE_NODE_DOWNLOAD: '1'
+        run: |
+          export LIVERPOOL_CANVAS_HOME="$RUNNER_TEMP/lc"
+          cat site/install.sh | bash -s -- status --json | tee out.json
+          grep -q '"published": true' out.json
+          ls "$RUNNER_TEMP/lc/node"
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/build-site.mjs
+      - name: Windows PowerShell 5.1, forced Node download
+        shell: powershell
+        env:
+          LC_FORCE_NODE_DOWNLOAD: '1'
+        run: |
+          $env:LIVERPOOL_CANVAS_HOME = Join-Path $env:RUNNER_TEMP 'lc'
+          $out = powershell -NoProfile -ExecutionPolicy Bypass -File site\install.ps1 status --json | Out-String
+          Write-Host $out
+          if ($out -notmatch '"published": true') { throw 'installer did not start the published package' }
+          Get-ChildItem (Join-Path $env:LIVERPOOL_CANVAS_HOME 'node')
+      - name: irm | iex style (script text from a string, no file)
+        shell: powershell
+        run: |
+          $env:LIVERPOOL_CANVAS_HOME = Join-Path $env:RUNNER_TEMP 'lc2'
+          $text = Get-Content -Raw site\install.ps1
+          [scriptblock]::Create($text) | Out-Null
+          Write-Host 'parses as a script block'
+      - name: The published URL serves a script PowerShell can run
+        if: github.event_name == 'workflow_dispatch'
+        shell: powershell
+        run: |
+          $s = Invoke-RestMethod https://shanyuzhang.com/liverpool-canvas/install.ps1
+          Write-Host $s.GetType().FullName
+          [scriptblock]::Create($s) | Out-Null
+          Write-Host 'live install.ps1 parses'

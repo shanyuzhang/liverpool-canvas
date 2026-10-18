@@ -13,7 +13,23 @@
 
 ## 启动
 
-只需要 Node.js 和 Chrome/Edge，不需要 Git，也不需要 GitHub 账号：
+只需要 Chrome 或 Edge。Node.js 不用提前装：电脑上没有 Node.js 22+ 时，安装命令会从 nodejs.org 下载官方 LTS 版到 `~/.liverpool-canvas/node`，校验 SHA-256，不需要管理员密码。也不需要 Git 或 GitHub 账号。
+
+macOS / Linux（“终端”）：
+
+```bash
+curl -fsSL https://shanyuzhang.com/liverpool-canvas/install.sh | bash
+```
+
+Windows（PowerShell）：
+
+```powershell
+irm https://shanyuzhang.com/liverpool-canvas/install.ps1 | iex
+```
+
+脚本源码：[docs/install.sh](docs/install.sh)、[docs/install.ps1](docs/install.ps1)。以后再运行同一条命令会打开菜单（接入 AI、打开下载页面、状态、重新登录）。
+
+已经装有 Node.js 22+ 的话，也可以直接：
 
 ```bash
 npx -y @shanyuzhang/liverpool-canvas@latest setup
@@ -144,4 +160,4 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 
 Liverpool Canvas Assistant connects University of Liverpool Canvas to your own AI assistant using your normal university sign-in (no access token), and keeps a local copy of course files that only ever fetches what you do not have yet. It is an unofficial, read-only student tool.
 
-Requirements: Node.js 22+, Chrome or Edge. Run `npx -y @shanyuzhang/liverpool-canvas@latest setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `… web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
+Requirements: Chrome or Edge. Run `curl -fsSL https://shanyuzhang.com/liverpool-canvas/install.sh | bash` (macOS/Linux) or `irm https://shanyuzhang.com/liverpool-canvas/install.ps1 | iex` (Windows PowerShell); it downloads the official Node.js LTS into ~/.liverpool-canvas if Node.js 22+ is missing. With Node.js 22+ you can also run `npx -y @shanyuzhang/liverpool-canvas@latest setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `… web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
