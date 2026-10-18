@@ -136,6 +136,10 @@ section.alt { background: var(--s0); }
 .prompt-card .row small { display: block; color: var(--muted); font-size: 14px; }
 .prompt-text { margin: 16px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; line-height: 1.65; color: var(--text-2); white-space: pre-wrap; max-height: 188px; overflow: auto; overflow-wrap: anywhere; }
 
+.self { margin-top: 16px; background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 18px 20px; }
+.self-head strong { font-weight: 600; display: block; }
+.self-head small { display: block; color: var(--muted); font-size: 14px; margin: 2px 0 6px; }
+.self-note { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
 .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .rules .card { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
 .rules h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
@@ -184,8 +188,8 @@ footer a { color: var(--muted); }
   <div class="wrap">
     <a class="brand" href="#"><img src="assets/icon.svg?v=2" alt=""> Liverpool Canvas Assistant</a>
     <nav class="nav">
-      <a class="hide-sm" href="#what" data-zh="能做什么" data-en="What it does"></a>
       <a class="hide-sm" href="#setup" data-zh="安装" data-en="Set up"></a>
+      <a class="hide-sm" href="#what" data-zh="能做什么" data-en="What it does"></a>
       <a class="hide-sm" href="#rules" data-zh="规定与安全" data-en="Rules & safety"></a>
       <a id="repoLink" class="hide-sm" href="#" hidden>GitHub</a>
       <button id="langBtn" type="button">EN</button>
@@ -227,7 +231,33 @@ footer a { color: var(--muted); }
   </div>
 </div>
 
-<section id="what" class="alt">
+<section id="setup" class="alt">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-zh="三步装好，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
+      <p data-zh="需要一个能在你电脑上操作的 AI，例如 Claude 桌面版的 Code 功能或 Codex。它会帮你检查环境、装好、接上。" data-en="You need an AI that can act on your computer, such as the Code feature in the Claude desktop app, or Codex. It checks your computer, installs and connects everything."></p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会一步步装好，中间问你几个简单问题，比如课件存到哪。" data-en="It sets things up step by step and asks a couple of simple questions, like where to save files."></p></div>
+      <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样，自己输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: type your account, password and MFA yourself. Never send your password to the AI."></p></div>
+      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，开始提问" data-en="Restart your AI and start asking"></h3><p data-zh="比如“这周有什么 DDL？”“老师最近发了什么？”" data-en="For example “Any deadlines this week?” or “What did my lecturers post recently?”"></p></div>
+    </div>
+    <div class="prompt-card">
+      <div class="row">
+        <div><strong data-zh="发给 AI 的一段话" data-en="The message for your AI"></strong><small data-zh="复制后粘贴到 AI 的对话框里发送即可" data-en="Copy it and paste it into your AI chat"></small></div>
+        <button class="btn primary" type="button" id="copyPrompt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span data-zh="复制这段话" data-en="Copy message"></span></button>
+      </div>
+      <div class="prompt-text" id="prompt"></div>
+    </div>
+    <div class="self">
+      <div class="self-head"><strong data-zh="会用终端？也可以自己装" data-en="Comfortable with a terminal? Install it yourself"></strong><small data-zh="不需要 GitHub 账号。在 Mac 的“终端”或 Windows 的 PowerShell 里依次运行：" data-en="No GitHub account needed. In Terminal (Mac) or PowerShell (Windows), run:"></small></div>
+      <div id="manualCmds"></div>
+      <p class="self-note" id="manualMore"></p>
+    </div>
+  </div>
+</section>
+
+<section id="what">
   <div class="wrap">
     <div class="head">
       <h2 data-zh="Canvas 上能看到的，它都能帮你处理" data-en="Anything you can see on Canvas, it can help with"></h2>
@@ -237,7 +267,7 @@ footer a { color: var(--muted); }
   </div>
 </section>
 
-<section id="examples">
+<section id="examples" class="alt">
   <div class="wrap">
     <div class="head">
       <h2 data-zh="用起来是这样" data-en="What it looks like"></h2>
@@ -264,26 +294,6 @@ footer a { color: var(--muted); }
   </div>
 </section>
 
-<section id="setup" class="alt">
-  <div class="wrap">
-    <div class="head">
-      <h2 data-zh="三步装好，不用懂技术" data-en="Three steps, no tech skills needed"></h2>
-      <p data-zh="需要一个能在你电脑上操作的 AI，例如 Claude 桌面版的 Code 功能或 Codex。它会帮你检查环境、装好、接上。" data-en="You need an AI that can act on your computer, such as the Code feature in the Claude desktop app, or Codex. It checks your computer, installs and connects everything."></p>
-    </div>
-    <div class="steps">
-      <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会一步步装好，中间问你几个简单问题，比如课件存到哪。" data-en="It sets things up step by step and asks a couple of simple questions, like where to save files."></p></div>
-      <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样，自己输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: type your account, password and MFA yourself. Never send your password to the AI."></p></div>
-      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，开始提问" data-en="Restart your AI and start asking"></h3><p data-zh="比如“这周有什么 DDL？”“老师最近发了什么？”" data-en="For example “Any deadlines this week?” or “What did my lecturers post recently?”"></p></div>
-    </div>
-    <div class="prompt-card">
-      <div class="row">
-        <div><strong data-zh="发给 AI 的一段话" data-en="The message for your AI"></strong><small data-zh="复制后粘贴到 AI 的对话框里发送即可" data-en="Copy it and paste it into your AI chat"></small></div>
-        <button class="btn primary" type="button" id="copyPrompt"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg><span data-zh="复制这段话" data-en="Copy message"></span></button>
-      </div>
-      <div class="prompt-text" id="prompt"></div>
-    </div>
-  </div>
-</section>
 
 <section id="rules">
   <div class="wrap">
@@ -325,12 +335,7 @@ footer a { color: var(--muted); }
     <details><summary data-zh="过几天 AI 说要重新登录？" data-en="After a few days the AI asks me to sign in again?"></summary><div class="body"><p data-zh="Canvas 的登录会过期。学校登录还记得你的话，窗口会自动完成；否则在弹出的窗口里重新登录一次就好。" data-en="Canvas sign-ins expire. If the university sign-in still remembers you, the window completes by itself; otherwise just sign in again."></p></div></details>
     <details><summary data-zh="下载课件会重复下、覆盖我改过的文件吗？" data-en="Will downloads duplicate or overwrite my files?"></summary><div class="body"><p data-zh="不会。下过的文件直接跳过，你改过的文件不会被替换；老师更新了文件会提醒你，但保留你本地的版本。不想用 AI 也可以：让 AI 帮你“打开下载页面”，在页面里勾选课程下载。" data-en="No. Files you have are skipped and your edits are never replaced; if a lecturer updates a file you're told, and your copy is kept. Without AI, ask it once to “open the download page” and tick courses there."></p></div></details>
     <details><summary data-zh="怎么退出、删除？" data-en="How do I sign out or remove it?"></summary><div class="body"><p data-zh="跟 AI 说“退出 Canvas 登录”即可清除这台电脑上的登录状态，已下载的课件不会删。不用了的话，让 AI 把它从 AI 应用的设置里移除。" data-en="Ask your AI to “sign out of Canvas” to clear the sign-in on this computer; downloaded files stay. To stop using it, ask your AI to remove it from the app's settings."></p></div></details>
-    <details id="manual"><summary data-zh="自己动手装（会用终端的同学）" data-en="Install it yourself (if you use a terminal)"></summary><div class="body">
-      <p data-zh="在终端（Mac：终端；Windows：PowerShell）里依次运行：" data-en="In a terminal (Terminal on Mac, PowerShell on Windows), run:"></p>
-      <div id="manualCmds"></div>
-      <p data-zh="setup 会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。" data-en="setup asks where to save files, opens the sign-in window and lets you pick the AI app to connect."></p>
-      <p id="manualMore"></p>
-    </div></details>
+    <details><summary data-zh="没有 GitHub 账号能装吗？" data-en="Can I install it without a GitHub account?"></summary><div class="body"><p data-zh="能。代码是公开的，下载不需要任何账号。让 AI 帮你装的话，它会自己处理；自己装的话，按“安装”里的命令运行就行。" data-en="Yes. The code is public, and downloading it needs no account. If your AI sets it up, it handles this; otherwise run the commands under “Set up”."></p></div></details>
   </div>
 </section>
 </main>
@@ -406,7 +411,9 @@ footer a { color: var(--muted); }
       + `<div class="cap wide"><span class="ico">${svg('chat')}</span><p>${esc(T('还有更多：模块和课程页面、任意 Canvas 只读数据……你在 Canvas 网页上能看到的，都可以直接问。', 'And more: modules, course pages, any read-only Canvas data. If you can see it on Canvas, you can ask about it.'))}</p></div>`;
     $('prompt').textContent = promptText();
     $('manualCmds').innerHTML = steps.map((c) => `<div class="cmd"><code>${esc(c)}</code><button type="button" data-copy="${esc(c)}">${T('复制', 'Copy')}</button></div>`).join('');
-    $('manualMore').innerHTML = R.published ? '' : `<span class="pill">${T('npm 一行命令发布后可用', 'One-line npm command once published')}</span> ${esc(T('现在需要先装好 Git。更多说明见', 'For now this needs Git. More in the'))} ${repo ? `<a href="${esc(repo)}#readme">README</a>` : 'README'}`;
+    $('manualMore').innerHTML = R.published
+      ? esc(T('它会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。', 'It asks where to save files, opens the sign-in window and lets you pick the AI app to connect.'))
+      : `${esc(T('第一行需要电脑上装有 Git（免费，', 'The first line needs Git installed (free, '))}<a href="https://git-scm.com/downloads">git-scm.com</a>${esc(T('）。最后一步会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。', '). The last step asks where to save files, opens the sign-in window and lets you pick the AI app to connect.'))} <span class="pill">${T('发布到 npm 后会变成一行命令，不再需要 Git', 'Becomes a single command once on npm, no Git needed')}</span>`;
     if (repo) { $('repoLink').href = repo; $('repoLink').hidden = false; }
     $('footMeta').innerHTML = `v${esc(R.version)} · MIT${repo ? ` · <a href="${esc(repo)}">GitHub</a>` : ''} · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
     restartTyping();
