@@ -1,6 +1,6 @@
 # 发布、回滚与配置
 
-当前状态：**npm 未发布**。包名已定为 `@shanyuzhang/liverpool-canvas`（`publishConfig.access = public`），仓库 https://github.com/shanyuzhang/liverpool-canvas ，网页 https://shanyuzhang.com/liverpool-canvas/ 。`release.json` 中 `published: false`，网页和程序据此仍显示 git clone 的安装方式。
+当前状态：**已在 npm 公开发布**：`@shanyuzhang/liverpool-canvas`（https://www.npmjs.com/package/@shanyuzhang/liverpool-canvas ）。仓库 https://github.com/shanyuzhang/liverpool-canvas ，网页 https://shanyuzhang.com/liverpool-canvas/ 。`release.json` 中 `published: true`，网页和程序显示 `npx -y @shanyuzhang/liverpool-canvas@latest` 的一行命令。
 
 ## 唯一的发布配置
 
@@ -18,33 +18,40 @@ node scripts/configure-release.mjs --scope <npm-scope> --repo <owner>/liverpool-
 2. 仓库 Settings → Pages → Source 选 “GitHub Actions”。`.github/workflows/pages.yml` 会在 `docs/`、`release.json` 等变化时构建 `site/` 并部署。
 3. `.github/workflows/ci.yml` 在 macOS / Windows / Linux × Node 22 / 24 上跑测试，并做 tarball 安装检查。第一次推送后请确认 Windows 和 Linux 任务通过（本地只在 macOS 上测过）。
 
-## 2. npm 发布（需要账号持有人授权和操作）
+## 2. npm 发布（需要账号持有人操作）
 
-1. 确认 npm 账号或组织拥有要用的 scope（`npm whoami`；组织 scope 需要在 npmjs.com 创建）。公开 scoped 包的发布方式以 npm 官方文档为准：https://docs.npmjs.com/creating-and-publishing-scoped-public-packages/
-2. 运行上面的 `configure-release.mjs`，提交。
-3. 发布前检查（会拒绝占位符、未提交改动，并跑完整测试和 tarball 安装检查）：
+npm 要求账号开启两步验证才能发布。新版本会先进入**暂存发布**（staged publishing）：自动审查（Validating）通过后，才会成为 `latest`；如果页面要求，需要在 npmjs.com 包页面点 Approve 并输入两步验证码。参考：https://docs.npmjs.com/staged-publishing/
+
+每次发版：
+
+1. 改版本号，提交：
+
+   ```bash
+   npm version patch --no-git-tag-version
+   ```
+
+2. 发布前检查（会拒绝占位符、未提交改动，并跑完整测试和 tarball 安装检查）：
 
    ```bash
    npm run check:release
    ```
 
-4. 发布：
+3. 发布（会要求输入两步验证码）：
 
    ```bash
    npm publish
    ```
 
-5. 发布成功后标记已发布并更新网页：
+4. 等 npmjs.com 上的版本从 Validating 变成 Published（需要时点 Approve），然后确认：
 
    ```bash
-   node scripts/configure-release.mjs --published
+   npm view @shanyuzhang/liverpool-canvas dist-tags
    ```
 
-   提交并推送；Pages 工作流会把网页上的命令切换为可用的 `npx -y <包名>@latest`。
+`release.json` 的 `published` 已经是 `true`，之后发版不用再改。注意：第一次发布的 0.1.0 打包时还标着 `published: false`，所以 0.1.0 的 `update` 命令不可用、错误提示显示长路径命令，已在 0.1.1 修正。
 
 ## 版本
 
-- 修改 `package.json` 的 `version`（例如 `npm version patch --no-git-tag-version`），提交后按上面第 3–5 步发布。
 - 公开入口用 `@latest`。AI 应用启动的是装在 `~/.liverpool-canvas/app` 里的**固定版本**（`setup`/`connect` 时按当前版本精确安装），不会每次启动都去拉远端。同学用 `liverpool-canvas update` 显式更新那份本地副本。
 
 ## 回滚

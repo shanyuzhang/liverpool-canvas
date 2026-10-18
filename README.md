@@ -13,39 +13,31 @@
 
 ## 启动
 
-> **npm 包尚未发布。** 包名已定为 `@shanyuzhang/liverpool-canvas`，发布后的入口是 `npx -y @shanyuzhang/liverpool-canvas@latest setup`（见 [RELEASE.md](RELEASE.md)）。在那之前，请用下面经过验证的本地方式（不需要 GitHub 账号，但需要装有 Git）。
+只需要 Node.js 和 Chrome/Edge，不需要 Git，也不需要 GitHub 账号：
 
 ```bash
-git clone https://github.com/shanyuzhang/liverpool-canvas.git
+npx -y @shanyuzhang/liverpool-canvas@latest setup
 ```
 
-```bash
-cd liverpool-canvas
-```
-
-```bash
-npm install
-```
-
-```bash
-node bin/cli.js setup
-```
-
-`setup` 依次：确认下载文件夹（默认“文稿/Documents/Canvas”）→ 打开独立的 Chrome/Edge 窗口让你自己完成学校登录和 MFA → 让你选一个要接入的 AI 应用（也可以跳过）。
+`setup` 依次：确认下载文件夹（默认“文稿/Documents/Canvas”）→ 打开独立的 Chrome/Edge 窗口让你自己完成学校登录和 MFA → 让你选一个要接入的 AI 应用（也可以跳过）。接入 AI 时，会把当前版本固定安装到 `~/.liverpool-canvas/app`，AI 应用每次启动都用这份本地副本，不会每次去网上拉取。
 
 之后常用：
 
 ```bash
-node bin/cli.js web
+npx -y @shanyuzhang/liverpool-canvas@latest web
 ```
 
 ```bash
-node bin/cli.js download --course MATH253
+npx -y @shanyuzhang/liverpool-canvas@latest sync
 ```
 
+更新 AI 应用使用的本地副本：
+
 ```bash
-node bin/cli.js sync
+npx -y @shanyuzhang/liverpool-canvas@latest update
 ```
+
+从源码运行（开发用）：`git clone https://github.com/shanyuzhang/liverpool-canvas.git`，进入目录后 `npm install`，再用 `node bin/cli.js setup`。
 
 ## 三步
 
@@ -80,7 +72,7 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 | `connect --client <id>` | 接入一个 AI 应用：`claude-desktop`、`claude-code`、`codex`、`cursor`、`windsurf` |
 | `web` | 打开本地操作网页（只监听 127.0.0.1） |
 | `mcp` | MCP stdio 服务（AI 应用启动它；stdout 只输出协议数据） |
-| `update` | 更新 AI 应用使用的本地副本（发布后可用） |
+| `update` | 把 AI 应用使用的本地副本更新到 npm 上的最新版本 |
 
 所有命令支持 `--help`；需要给脚本或 AI 读取时加 `--json`。
 
@@ -152,4 +144,4 @@ AI 读到的课程内容会发送给你使用的 AI 应用及其服务商，就�
 
 Liverpool Canvas Assistant connects University of Liverpool Canvas to your own AI assistant using your normal university sign-in (no access token), and keeps a local copy of course files that only ever fetches what you do not have yet. It is an unofficial, read-only student tool.
 
-Requirements: Node.js 22+, Chrome or Edge. The npm package is **not published yet**; run `git clone https://github.com/shanyuzhang/liverpool-canvas.git`, `cd liverpool-canvas`, `npm install`, then `node bin/cli.js setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `node bin/cli.js web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
+Requirements: Node.js 22+, Chrome or Edge. Run `npx -y @shanyuzhang/liverpool-canvas@latest setup` (download folder → sign in yourself in a separate browser window → optionally connect one AI app). `… web` opens the local page for downloading without an AI; `download --course MATH253` and `sync` do the same from the terminal. Files you already have are never downloaded again, replaced or moved; changed files on Canvas are reported and your copy is kept. All 17 tools of the upstream project are kept, plus preview/download/sync/status tools. See [PRIVACY.md](PRIVACY.md) for what stays on your computer and what your AI app receives.
