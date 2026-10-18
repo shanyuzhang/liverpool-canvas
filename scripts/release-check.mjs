@@ -20,4 +20,4 @@ for (const [cmd, args] of [[process.execPath, ['--test']], [process.execPath, ['
   const r = spawnSync(cmd, args, { cwd: root, stdio: 'inherit' });
   if (r.status !== 0) process.exit(r.status || 1);
 }
-console.log(`\nReady: ${pkg.name}@${pkg.version}. Publish with: npm publish (then: node scripts/configure-release.mjs --published, commit, rebuild the site).`);
+console.log(`\nReady: ${pkg.name}@${pkg.version}. Publish with: npm publish, then wait for (or approve) the staged version on npmjs.com.${rel.published ? '' : ' After the first release: node scripts/configure-release.mjs --published.'}`);
