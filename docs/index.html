@@ -146,6 +146,22 @@ section.alt { background: var(--s0); }
 .self-head small { display: block; color: var(--muted); font-size: 14px; margin: 2px 0 6px; }
 .self-note { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
 .self-note code { font: 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--s0); padding: 2px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+.daily { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; }
+.flow { display: grid; gap: 0; align-content: start; }
+.flow-item { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 18px 20px; display: grid; gap: 4px; }
+.flow-item b { font-weight: 600; font-size: 16px; }
+.flow-item > span:last-child { color: var(--muted); font-size: 15px; }
+.flow-item.once { background: var(--s1); }
+.flow-arrow { width: 2px; height: 22px; background: var(--line-strong); margin-left: 32px; }
+.tag-once, .tag-every { justify-self: start; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 1px 8px; margin-bottom: 4px; }
+.tag-once { color: var(--muted); background: var(--s0); }
+.tag-every { color: var(--clay-strong); background: var(--clay-tint); }
+.say { display: grid; gap: 8px; }
+.say button { font: inherit; font-size: 15px; text-align: left; color: var(--text); background: var(--s1); border: 0; box-shadow: inset 0 0 0 1px var(--line); border-radius: 12px; padding: 10px 14px; cursor: pointer; display: flex; justify-content: space-between; gap: 12px; align-items: center; transition: box-shadow .12s var(--ease); }
+.say button:hover { box-shadow: inset 0 0 0 1px var(--clay); }
+.say button small { color: var(--faint); font-size: 12px; flex: none; }
+.tips { margin-top: 22px; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tips li { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 16px; }
 .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
 .rules .card { background: var(--s2); border-radius: 14px; box-shadow: var(--ring); padding: 22px; }
 .rules h3 { font-size: 17px; font-weight: 600; margin-bottom: 12px; }
@@ -180,7 +196,7 @@ footer a { color: var(--muted); }
 
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; padding-top: 36px; gap: 36px; }
-  .caps, .steps, .convos, .rules { grid-template-columns: 1fr; }
+  .caps, .steps, .convos, .rules, .daily, .tips { grid-template-columns: 1fr; }
   .cap.wide { grid-column: auto; grid-template-columns: 1fr; }
   section { padding: 54px 0; }
   .prompt-card .row .btn { width: 100%; }
@@ -195,6 +211,7 @@ footer a { color: var(--muted); }
     <a class="brand" href="#"><img src="assets/icon.svg?v=2" alt=""> Liverpool Canvas Assistant</a>
     <nav class="nav">
       <a class="hide-sm" href="#setup" data-zh="安装" data-en="Set up"></a>
+      <a class="hide-sm" href="#daily" data-zh="日常使用" data-en="Daily use"></a>
       <a class="hide-sm" href="#what" data-zh="能做什么" data-en="What it does"></a>
       <a class="hide-sm" href="#rules" data-zh="规定与安全" data-en="Rules & safety"></a>
       <a id="repoLink" class="hide-sm" href="#" hidden>GitHub</a>
@@ -246,7 +263,7 @@ footer a { color: var(--muted); }
     <div class="steps">
       <div class="step"><div class="n">1</div><h3 data-zh="复制下面这段话，发给 AI" data-en="Copy the message below and send it to your AI"></h3><p data-zh="它会一步步装好，中间问你几个简单问题，比如课件存到哪。" data-en="It sets things up step by step and asks a couple of simple questions, like where to save files."></p></div>
       <div class="step"><div class="n">2</div><h3 data-zh="在弹出的窗口登录学校账号" data-en="Sign in in the window that opens"></h3><p data-zh="和平时登录 Canvas 一样，自己输入账号、密码和验证码。密码不要发给 AI。" data-en="Same as logging in to Canvas: type your account, password and MFA yourself. Never send your password to the AI."></p></div>
-      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，开始提问" data-en="Restart your AI and start asking"></h3><p data-zh="比如“这周有什么 DDL？”“老师最近发了什么？”" data-en="For example “Any deadlines this week?” or “What did my lecturers post recently?”"></p></div>
+      <div class="step"><div class="n">3</div><h3 data-zh="重启 AI，开始提问" data-en="Restart your AI and start asking"></h3><p data-zh="只有这一次需要重启。以后打开 AI 直接问，比如“这周有什么 DDL？”" data-en="Only this once. Afterwards just open your AI and ask, e.g. “Any deadlines this week?”"></p></div>
     </div>
     <div class="prompt-card">
       <div class="row">
@@ -270,7 +287,40 @@ footer a { color: var(--muted); }
   </div>
 </section>
 
-<section id="what">
+<section id="daily">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-zh="装好以后：打开 AI，直接问" data-en="After setup: open your AI and just ask"></h2>
+      <p data-zh="它不是一个每次都要打开的软件，而是装进你 AI 应用里的一个扩展。只要装一次，以后打开 Codex 或 Claude 就会自动在后台启动，不用再开终端、也不用再运行命令。" data-en="It isn't an app you open each time. It's an add-on that lives inside your AI app: install it once, and from then on it starts by itself in the background whenever you open Codex or Claude. No terminal, no commands."></p>
+    </div>
+    <div class="daily">
+      <div class="flow">
+        <div class="flow-item once">
+          <span class="tag-once" data-zh="只做一次" data-en="Once"></span>
+          <b data-zh="安装 → 登录学校账号 → 重启 AI 应用" data-en="Install → sign in → restart your AI app"></b>
+          <span data-zh="就是上面那三步。" data-en="The three steps above."></span>
+        </div>
+        <div class="flow-arrow" aria-hidden="true"></div>
+        <div class="flow-item">
+          <span class="tag-every" data-zh="以后每次" data-en="Every time after"></span>
+          <b data-zh="打开 Codex 或 Claude，新建一个对话，直接问" data-en="Open Codex or Claude, start a chat, ask"></b>
+          <span data-zh="它会自己去 Canvas 上查，几秒就有结果。" data-en="It checks Canvas for you and answers in seconds."></span>
+        </div>
+      </div>
+      <div class="convo">
+        <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="在 Codex 里直接说，比如：" data-en="In Codex, just say something like:"></span></div>
+        <div class="say" id="sayList"></div>
+      </div>
+    </div>
+    <ul class="list tips">
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="问的时候带上“Canvas”或课程代码" data-en="Mention “Canvas” or a course code"></b><span data-zh="AI 更容易想到用它。如果它没用上，就补一句“用 Liverpool Canvas 查一下”。" data-en="That helps the AI pick it. If it doesn't, add “use Liverpool Canvas”."></span></div></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="登录过期了会自动提醒" data-en="Expired sign-ins are handled"></b><span data-zh="会弹出学校登录窗口，登录完再问一次就好。" data-en="A university sign-in window opens; sign in and ask again."></span></div></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><div><b data-zh="更新、换电脑、换 AI 应用" data-en="Update, new computer, another AI app"></b><span data-zh="再运行一次上面的安装命令（或把那段话再发给 AI）就行，已下载的文件和登录都不受影响。" data-en="Run the install command again (or send the message to your AI again). Downloaded files and your sign-in stay as they are."></span></div></li>
+    </ul>
+  </div>
+</section>
+
+<section id="what" class="alt">
   <div class="wrap">
     <div class="head">
       <h2 data-zh="Canvas 上能看到的，它都能帮你处理" data-en="Anything you can see on Canvas, it can help with"></h2>
@@ -280,7 +330,7 @@ footer a { color: var(--muted); }
   </div>
 </section>
 
-<section id="examples" class="alt">
+<section id="examples">
   <div class="wrap">
     <div class="head">
       <h2 data-zh="用起来是这样" data-en="What it looks like"></h2>
@@ -308,7 +358,7 @@ footer a { color: var(--muted); }
 </section>
 
 
-<section id="rules">
+<section id="rules" class="alt">
   <div class="wrap">
     <div class="head">
       <h2 data-zh="会不会违反学校规定？" data-en="Is this against the rules?"></h2>
@@ -339,7 +389,7 @@ footer a { color: var(--muted); }
   </div>
 </section>
 
-<section id="faq" class="alt">
+<section id="faq">
   <div class="wrap faq">
     <div class="head"><h2 data-zh="常见问题" data-en="Questions"></h2></div>
     <details><summary data-zh="需要准备什么？" data-en="What do I need?"></summary><div class="body"><p data-zh="一台 Mac 或 Windows 电脑，装好 Chrome 或 Edge（Windows 自带 Edge）就够了。运行环境 Node.js 不用自己装：安装命令发现电脑上没有，会从 nodejs.org 下载官方版本，放在你的用户文件夹里，不需要管理员密码。" data-en="A Mac or Windows computer with Chrome or Edge (Windows has Edge). You don't need to install Node.js yourself: if it's missing, the install command downloads the official version from nodejs.org into your user folder, no admin password needed."></p></div></details>
@@ -398,6 +448,12 @@ footer a { color: var(--muted); }
     ['chat', '讨论区和站内信', 'Discussions and Inbox', '讨论区里大家怎么说、老师给你发的站内信。', 'What people said in discussions, and messages from tutors.', '讨论区里关于第二题大家怎么说？', 'What did people say about Q2 in the discussion?'],
     ['down', '课件和试卷，想存哪就存哪', 'Course files and papers, wherever you want them', '在 Codex、Claude Code 里打开一个文件夹，说“下到这里”就直接存进去；整门课也能一次下完，以后只下新的。下过的不重复，你改过的不覆盖。', 'Open a folder in Codex or Claude Code and say “save it here”; whole courses download in one go, and later only new files. Nothing is downloaded twice or overwritten.', '把这份试卷下到这个文件夹', 'Save this exam paper into this folder'],
   ];
+  const SAY = [
+    ['这周 Canvas 上有什么 DDL？哪些还没交？', 'What is due on Canvas this week, and what haven\'t I submitted?'],
+    ['MATH253 老师最近发了什么通知？', 'Any new announcements in MATH253?'],
+    ['用 Liverpool Canvas 把 COMP207 第五周的讲义下到这个文件夹', 'Use Liverpool Canvas to save the COMP207 week 5 slides into this folder'],
+    ['帮我补一下所有课的新文件', 'Fetch any new files for my courses'],
+  ];
   const TYPED = [['老师最近发了什么通知？', 'Anything new from my lecturers?'], ['读一下第三周的讲义，帮我总结重点', 'Summarise the week 3 slides for me'], ['Assignment 2 什么时候交？要求是什么？', 'When is Assignment 2 due, and what does it want?']];
 
   function promptText() {
@@ -426,6 +482,7 @@ footer a { color: var(--muted); }
     $('caps').innerHTML = CAPS.map((c) => `<div class="cap"><span class="ico">${svg(c[0])}</span><h3>${esc(T(c[1], c[2]))}</h3><p>${esc(T(c[3], c[4]))}</p><q>“${esc(T(c[5], c[6]))}”</q></div>`).join('')
       + `<div class="cap wide"><span class="ico">${svg('chat')}</span><p>${esc(T('还有更多：模块和课程页面、任意 Canvas 只读数据……你在 Canvas 网页上能看到的，都可以直接问。', 'And more: modules, course pages, any read-only Canvas data. If you can see it on Canvas, you can ask about it.'))}</p></div>`;
     $('prompt').textContent = promptText();
+    $('sayList').innerHTML = SAY.map((x) => `<button type="button" data-copy="${esc(T(x[0], x[1]))}"><span>“${esc(T(x[0], x[1]))}”</span><small>${T('复制', 'Copy')}</small></button>`).join('');
     for (const b of document.querySelectorAll('#osSeg button')) b.setAttribute('aria-pressed', String(b.dataset.os === os));
     $('osSeg').hidden = !R.published;
     $('osHow').textContent = !R.published ? '' : os === 'win'
