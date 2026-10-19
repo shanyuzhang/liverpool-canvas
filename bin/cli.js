@@ -180,11 +180,31 @@ async function connect({ fromSetup = false } = {}) {
       say(`  Next: ${c.restart.en}\n  然后: ${c.restart.zh}`);
     } catch (e) { say(`✗ ${c.name}: ${e.message}`); done.push({ id: c.id, error: e.message }); }
   }
-  if (done.some((d) => !d.error)) {
-    say('\nNote: what the AI reads from Canvas through this tool is sent to that AI app and its provider, like anything else you share in a chat.');
-    say('Try asking: "List my courses and what is due this week" / “列出我的课程和本周截止的作业”');
-  }
+  if (!fromSetup) howToUse(done.filter((d) => !d.error).map((d) => d.name));
   return done;
+}
+
+// What to do from now on: the AI app starts this tool by itself, so nobody needs the
+// terminal again. Printed once setup or connect has hooked up an AI app.
+function howToUse(names) {
+  if (!names.length) return;
+  const apps = names.join(' / ');
+  say('');
+  say('────────────────────────────────────────');
+  say('装好了。以后不用再运行这条命令：');
+  say(`  1. 完全退出并重新打开 ${apps}（只有这一次需要）`);
+  say(`  2. 以后打开 ${apps}，新建对话直接问，比如：`);
+  say('       “这周 Canvas 上有什么 DDL？哪些还没交？”');
+  say('       “MATH253 老师最近发了什么通知？”');
+  say('       “把 COMP207 第五周的讲义下到这个文件夹”');
+  say('     如果 AI 没用上它，补一句“用 Liverpool Canvas 查一下”。');
+  say('  · 登录过期时会自动弹出学校登录窗口，登录完再问一次。');
+  say('  · 想更新或接入别的 AI 应用，再运行一次安装命令。');
+  say('');
+  say(`All set. You don't need this command again: restart ${apps} once, then just ask in a new chat,`);
+  say('e.g. "What is due on Canvas this week?" If the AI doesn\'t use it, add "use Liverpool Canvas".');
+  say('Note: what the AI reads from Canvas is sent to that AI app and its provider, like anything you share in a chat.');
+  say('────────────────────────────────────────');
 }
 
 async function resolveCourses(app, queries) {
@@ -353,10 +373,13 @@ async function setup() {
   let connected = [];
   if (!values['skip-ai']) connected = await connect({ fromSetup: true });
   rl?.close();
-  say('\nAll set.');
-  say(`  · Download courses without an AI app: ${cliHint('web')}`);
-  say(`  · Or from here: ${cliHint('download --course MATH253')}, and later ${cliHint('sync')}`);
-  if (!connected.length) say(`  · Connect an AI app any time: ${cliHint('connect')}`);
+  const ok = connected.filter((d) => !d.error).map((d) => d.name);
+  if (ok.length) howToUse(ok);
+  else {
+    say('\n设置完成。All set.');
+    say(`  · 接入 AI 应用（以后直接在 AI 里问）/ Connect an AI app any time: ${cliHint('connect')}`);
+  }
+  say(`  · 不用 AI，直接打开下载页面 / Download page without an AI: ${cliHint('web')}`);
   if (JSON_OUT) emit({ downloadFolder: root, connected });
 }
 

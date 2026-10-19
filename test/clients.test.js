@@ -64,6 +64,8 @@ test('setup: saves the folder and connects only the app the user chose', () => {
   assert.ok(!fs.existsSync(path.join(desktopDir, 'claude_desktop_config.json')), 'Claude Desktop was not chosen, so it is untouched');
   assert.ok(!fs.existsSync(path.join(home, '.cursor', 'mcp.json')));
   assert.match(r.stdout, /Close and reopen Codex/);
+  assert.match(r.stdout, /以后不用再运行这条命令/);
+  assert.match(r.stdout, /restart Codex once/);
 });
 
 test('setup --yes never connects AI apps on its own', () => {
