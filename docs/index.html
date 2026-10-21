@@ -6,6 +6,7 @@
 <title>Liverpool Canvas Assistant</title>
 <meta name="description" content="Liverpool Canvas Assistant：让你常用的 AI 帮你处理利物浦大学 Canvas 上的事，盯 DDL、看新通知、读作业要求和讲义、查成绩、下课件。用学校账号正常登录，只读。学生维护的非官方开源工具。">
 <link rel="icon" href="assets/icon.svg?v=2" type="image/svg+xml">
+<link rel="preload" as="image" href="assets/promo-poster.webp" type="image/webp" fetchpriority="high">
 <style>
 :root {
   --s0: #f5f5f3; --s1: #fcfcfb; --s2: #ffffff;
@@ -80,27 +81,33 @@ a { color: var(--clay-strong); text-underline-offset: 3px; }
 .btn.primary:hover { background: var(--clay-strong); }
 .btn.secondary { background: var(--s2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line-strong); }
 .btn.secondary:hover { background: var(--s0); }
-.btn:focus-visible, summary:focus-visible, .nav a:focus-visible, .nav button:focus-visible, .cmd button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
+.btn:focus-visible, summary:focus-visible, .nav a:focus-visible, .nav button:focus-visible, .cmd button:focus-visible, .promo-ctl button:focus-visible { outline: 2px solid var(--clay); outline-offset: 2px; }
 
-/* chat illustration */
-.chat { background: var(--s2); border-radius: 20px; box-shadow: var(--pop); padding: 22px; display: grid; gap: 16px; }
+/* promo video in a phone frame; the frame takes the theme's surface tokens, the screen stays dark like a real one */
+.promo { --phone: 300px; margin: 0; width: var(--phone); max-width: 100%; justify-self: center; display: grid; gap: 14px; justify-items: center; }
+.phone { position: relative; width: 100%; padding: calc(var(--phone) * .033); border-radius: calc(var(--phone) * .153); background: linear-gradient(160deg, var(--s2), var(--s0)); box-shadow: inset 0 0 0 1px var(--line-strong), var(--pop); }
+.phone::before, .phone::after { content: ""; position: absolute; width: 3px; border-radius: 3px; background: var(--line-strong); }
+.phone::before { left: -3px; top: 21%; height: 10%; }
+.phone::after { right: -3px; top: 26%; height: 14%; }
+.screen { position: relative; aspect-ratio: 9 / 16; border-radius: calc(var(--phone) * .12); overflow: hidden; isolation: isolate; background: #141413; cursor: pointer; }
+.screen::before { content: ""; position: absolute; z-index: 2; top: calc(var(--phone) * .033); left: 50%; width: 30%; height: calc(var(--phone) * .08); transform: translateX(-50%); border-radius: 999px; background: #000; }
+.screen::after { content: ""; position: absolute; z-index: 2; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--line-strong); pointer-events: none; }
+.screen video { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.promo-big { position: absolute; z-index: 2; left: 50%; bottom: 8%; width: 56px; height: 56px; margin-left: -28px; border-radius: 50%; background: var(--clay); color: var(--on-clay); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.3); opacity: 0; transform: scale(.9); transition: opacity .2s var(--ease), transform .2s var(--ease); pointer-events: none; }
+.promo.idle .promo-big { opacity: 1; transform: none; }
+.promo-ctl { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.promo-ctl button { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 14px; height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--s2); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--line-strong); cursor: pointer; transition: background .12s var(--ease), color .12s var(--ease); }
+.promo-ctl button:hover { background: var(--s0); color: var(--text); }
+.promo-ctl svg { width: 16px; height: 16px; flex: none; }
+#promoSound svg { color: var(--clay); }
+.promo.idle .on-play, .promo:not(.idle) .on-idle, .promo.sound .on-muted, .promo:not(.sound) .on-sound { display: none; }
+.promo figcaption { font-size: 13px; line-height: 1.6; color: var(--muted); text-align: center; text-wrap: balance; word-break: keep-all; }
+
+/* chat bubbles in the example conversations */
 .bubble-user { justify-self: end; background: var(--s0); border-radius: 14px; padding: 10px 14px; max-width: 88%; font-size: 15px; }
 .answer { font-size: 15px; color: var(--text-2); }
 .who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .spark { width: 18px; height: 18px; color: var(--clay); flex: none; }
-.items { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
-.items li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 12px; border-radius: 10px; background: var(--s1); box-shadow: inset 0 0 0 1px var(--line); }
-.items b { font-weight: 600; color: var(--text); }
-.items span { font-size: 13px; color: var(--muted); }
-.items .st { grid-row: span 2; align-self: center; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-.st.hot { color: var(--clay-strong); background: var(--clay-tint); }
-.st.calm { color: var(--muted); background: var(--s0); }
-.composer { display: flex; align-items: center; gap: 10px; border-radius: 16px; padding: 10px 10px 10px 16px; box-shadow: 0 0.25rem 1.25rem rgba(0,0,0,.035), inset 0 0 0 1px var(--line-strong); font-size: 15px; }
-.composer .typed { flex: 1; color: var(--text); min-height: 1.6em; }
-.composer .typed::after { content: ""; display: inline-block; width: 2px; height: 1.05em; background: var(--clay); margin-left: 2px; vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
-@keyframes blink { 50% { opacity: 0; } }
-.composer .send { width: 32px; height: 32px; border-radius: 9px; background: var(--clay); color: #fff; display: grid; place-items: center; flex: none; }
-.mock-note { text-align: center; font-size: 12px; color: var(--faint); margin-top: 10px; }
 
 /* sections */
 section { padding: 76px 0; scroll-margin-top: 60px; }
@@ -198,6 +205,7 @@ footer a { color: var(--muted); }
   .hero { grid-template-columns: 1fr; padding-top: 36px; gap: 36px; }
   .caps, .steps, .convos, .rules, .daily, .tips { grid-template-columns: 1fr; }
   .cap.wide { grid-column: auto; grid-template-columns: 1fr; }
+  .promo { --phone: 250px; }
   section { padding: 54px 0; }
   .prompt-card .row .btn { width: 100%; }
 }
@@ -237,21 +245,21 @@ footer a { color: var(--muted); }
     </ul>
   </div>
 
-  <div aria-hidden="true">
-    <div class="chat">
-      <div class="bubble-user" data-zh="这周有什么 DDL？老师有没有发新通知？" data-en="Any deadlines this week? Anything new from my lecturers?"></div>
-      <div class="answer">
-        <div class="who"><svg class="spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg><span data-zh="你的 AI 助理" data-en="Your AI assistant"></span></div>
-        <ul class="items">
-          <li><b>MATH253 Assignment 1</b><span class="st hot" data-zh="未提交" data-en="Not submitted"></span><span data-zh="周五 17:00 截止（英国时间）" data-en="Due Fri 17:00 UK time"></span></li>
-          <li><b>MATH268 Quiz 3</b><span class="st calm" data-zh="已提交" data-en="Submitted"></span><span data-zh="周日 23:59 截止" data-en="Due Sun 23:59"></span></li>
-          <li><b data-zh="新通知 · MATH253" data-en="New · MATH253"></b><span class="st hot" data-zh="新" data-en="New"></span><span data-zh="“周四的课改到 Room 102”" data-en="“Thursday's class moves to Room 102”"></span></li>
-        </ul>
+  <figure class="promo" id="promo">
+    <div class="phone">
+      <div class="screen" id="promoScreen">
+        <video id="promoVideo" muted playsinline loop preload="none" width="720" height="1280" poster="assets/promo-poster.webp" aria-describedby="promoCap" data-zh-label="Liverpool Canvas Assistant 宣传片（31 秒）" data-en-label="Liverpool Canvas Assistant promo video (31 seconds)">
+          <source src="assets/promo.mp4" type="video/mp4">
+        </video>
+        <span class="promo-big" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.2-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg></span>
       </div>
-      <div class="composer"><span class="typed" id="typed"></span><span class="send"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></span></div>
     </div>
-    <p class="mock-note" data-zh="示意图，课程和内容为虚构" data-en="Illustration; courses and content are fictional"></p>
-  </div>
+    <div class="promo-ctl">
+      <button type="button" id="promoPlay"><svg class="on-play" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg><svg class="on-idle" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.6v12.8a1 1 0 0 0 1.5.86l10.2-6.4a1 1 0 0 0 0-1.72L9.5 4.74A1 1 0 0 0 8 5.6z"/></svg><span class="on-play" data-zh="暂停" data-en="Pause"></span><span class="on-idle" data-zh="播放" data-en="Play"></span></button>
+      <button type="button" id="promoSound"><svg class="on-muted" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg><svg class="on-sound" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6m0-6 6 6"/></svg><span class="on-muted" data-zh="有声播放" data-en="Play with sound"></span><span class="on-sound" data-zh="关闭声音" data-en="Mute"></span></button>
+    </div>
+    <figcaption id="promoCap" data-zh="31 秒看完这一页：没有旁白，字幕就在画面里，静音也能看懂。" data-en="This page in 31 seconds. No voice&#8209;over: the captions (in Chinese) are on screen, so it works on mute."></figcaption>
+  </figure>
 </div>
 
 <section id="setup" class="alt">
@@ -454,7 +462,6 @@ footer a { color: var(--muted); }
     ['用 Liverpool Canvas 把 COMP207 第五周的讲义下到这个文件夹', 'Use Liverpool Canvas to save the COMP207 week 5 slides into this folder'],
     ['帮我补一下所有课的新文件', 'Fetch any new files for my courses'],
   ];
-  const TYPED = [['老师最近发了什么通知？', 'Anything new from my lecturers?'], ['读一下第三周的讲义，帮我总结重点', 'Summarise the week 3 slides for me'], ['Assignment 2 什么时候交？要求是什么？', 'When is Assignment 2 due, and what does it want?']];
 
   function promptText() {
     return [
@@ -478,6 +485,7 @@ footer a { color: var(--muted); }
     document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
     for (const el of document.querySelectorAll('[data-zh]')) el.textContent = lang === 'zh' ? el.dataset.zh : el.dataset.en;
     for (const el of document.querySelectorAll('[data-zh-html]')) el.innerHTML = lang === 'zh' ? el.dataset.zhHtml : el.dataset.enHtml;
+    for (const el of document.querySelectorAll('[data-zh-label]')) el.setAttribute('aria-label', lang === 'zh' ? el.dataset.zhLabel : el.dataset.enLabel);
     $('langBtn').textContent = lang === 'zh' ? 'EN' : '中文';
     $('caps').innerHTML = CAPS.map((c) => `<div class="cap"><span class="ico">${svg(c[0])}</span><h3>${esc(T(c[1], c[2]))}</h3><p>${esc(T(c[3], c[4]))}</p><q>“${esc(T(c[5], c[6]))}”</q></div>`).join('')
       + `<div class="cap wide"><span class="ico">${svg('chat')}</span><p>${esc(T('还有更多：模块和课程页面、任意 Canvas 只读数据……你在 Canvas 网页上能看到的，都可以直接问。', 'And more: modules, course pages, any read-only Canvas data. If you can see it on Canvas, you can ask about it.'))}</p></div>`;
@@ -495,7 +503,6 @@ footer a { color: var(--muted); }
       : `${esc(T('第一行需要电脑上装有 Git（免费，', 'The first line needs Git installed (free, '))}<a href="https://git-scm.com/downloads">git-scm.com</a>${esc(T('）。最后一步会问你课件存到哪、打开登录窗口，并让你选一个要接入的 AI 应用。', '). The last step asks where to save files, opens the sign-in window and lets you pick the AI app to connect.'))} <span class="pill">${T('发布到 npm 后会变成一行命令，不再需要 Git', 'Becomes a single command once on npm, no Git needed')}</span>`;
     if (repo) { $('repoLink').href = repo; $('repoLink').hidden = false; }
     $('footMeta').innerHTML = `v${esc(R.version)} · MIT${repo ? ` · <a href="${esc(repo)}">GitHub</a>` : ''} · ${T('基于', 'based on')} <a href="https://github.com/CorCvusRamboChen/canvas-session-mcp">canvas-session-mcp</a>`;
-    restartTyping();
   }
 
   let toastTimer;
@@ -506,28 +513,37 @@ footer a { color: var(--muted); }
     toast(msg || T('已复制', 'Copied'));
   }
 
-  // The composer in the illustration types a few example questions.
-  let typingTimer;
-  function restartTyping() {
-    clearTimeout(typingTimer);
-    const el = $('typed');
-    const list = TYPED.map((x) => T(x[0], x[1]));
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = list[0]; return; }
-    let i = 0; let n = 0; let back = false;
-    const tick = () => {
-      const s = list[i];
-      if (!back) {
-        n++;
-        if (n >= s.length) { back = true; el.textContent = s; typingTimer = setTimeout(tick, 1800); return; }
-      } else {
-        n -= 2;
-        if (n <= 0) { back = false; n = 0; i = (i + 1) % list.length; }
-      }
-      el.textContent = s.slice(0, Math.max(0, n));
-      typingTimer = setTimeout(tick, back ? 18 : 70);
-    };
-    tick();
-  }
+  // The promo video in the hero. Its poster is preloaded and shows at once; the video (2.5 MB) is only fetched after
+  // the page has loaded and the browser is idle, then it plays muted and looped while on screen and pauses off screen.
+  // With reduced motion or Save-Data it waits for the play button. "Play with sound" restarts it once with the music,
+  // then it goes back to the muted loop.
+  const pv = $('promoVideo');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  const autoplay = () => !calm.matches && !navigator.connection?.saveData;
+  let want = autoplay(); // play whenever it is on screen
+  let onScreen = false;
+  let settled = false; // page loaded and browser idle: only from then on may it start by itself
+  const promoState = () => { $('promo').classList.toggle('idle', !want); $('promo').classList.toggle('sound', !pv.muted); };
+  const start = () => pv.play().catch((e) => { if (e.name !== 'AbortError') { want = false; promoState(); } }); // blocked or failed: show the play button
+  const follow = () => { if (!want || !onScreen || document.hidden) { if (!pv.paused) pv.pause(); } else if (pv.paused && settled) start(); };
+  const settle = () => { const go = () => { settled = true; follow(); }; if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 3000 }); else setTimeout(go, 200); };
+  if (document.readyState === 'complete') settle(); else addEventListener('load', settle, { once: true });
+  if ('IntersectionObserver' in window) new IntersectionObserver((es) => { onScreen = es[es.length - 1].intersectionRatio >= 0.25; follow(); }, { threshold: [0, 0.25] }).observe(pv);
+  else want = false;
+  pv.addEventListener('play', () => { want = true; promoState(); });
+  pv.addEventListener('pause', () => { if (onScreen && !document.hidden && !pv.ended) { want = false; promoState(); } }); // paused from outside, e.g. media keys
+  pv.addEventListener('volumechange', promoState);
+  pv.addEventListener('ended', () => { pv.muted = true; pv.loop = true; want = autoplay(); promoState(); follow(); });
+  $('promoPlay').addEventListener('click', () => { want = !want; if (want) start(); else pv.pause(); promoState(); });
+  $('promoScreen').addEventListener('click', () => $('promoPlay').click());
+  $('promoSound').addEventListener('click', () => {
+    if (pv.muted) { pv.muted = false; pv.loop = false; pv.currentTime = 0; want = true; start(); }
+    else { pv.muted = true; pv.loop = true; }
+    promoState();
+  });
+  calm.addEventListener?.('change', () => { if (calm.matches && pv.muted) { want = false; follow(); promoState(); } });
+  document.addEventListener('visibilitychange', follow);
+  promoState();
 
   document.addEventListener('click', (e) => {
     const b = e.target.closest('[data-copy]');
